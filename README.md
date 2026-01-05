@@ -23,26 +23,26 @@
 ## Abstract
 This research bridges High-Performance Computing (HPC) with enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework. Featuring Bernstein condition analysis for parallel correctness, the approach achieves 10-100x speedup on petabyte-scale data transformation pipelines. Presented at IWOCL 2026 and developed at Uganda Martyrs University.
 
-## 🏫 Academic Context
+## Academic Context
 > **Presented at**: IWOCL 2026 – International Workshop on OpenCL, SYCL, and SPIR-V  
 > **Venue**: Heilbronn School of Computation, Heilbronn, Germany | May 6–8, 2026  
 > **Institutional Support**: Uganda Martyrs University, Faculty of Science & Technology  
 > **Researchers**: Robert W. Bakyayita & J. Brian Kasozi  
 
-## 🔬 Research Contributions
+## Research Contributions
 
 - **Theoretical**: Extended Bernstein conditions for parallel data transformation
 - **Architectural**: Production-ready MPI+OpenMP hybrid framework
 - **Empirical**: 10-100x speedup vs. traditional ETL approaches (Bakyayita & Kasozi, 2026)
 - **Methodological**: Novel benchmarking methodology for hybrid systems
 
-## 🚀 Key Features
+## Key Features
 - **Hybrid Parallelism**: MPI (inter-node) + OpenMP (intra-node)
 - **Formal Verification**: Bernstein condition analysis for correctness
 - **Resource Optimization**: Energy-aware and fault-tolerant scheduling
 - **Real-World Validation**: Case studies in finance, healthcare, e-commerce
 
-## 📊 Performance Metrics
+## Performance Metrics
 
 <div align="center">
   <img src="Computation1.png" alt="Performance Results" width="500">
@@ -55,7 +55,7 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 - **Efficiency**: 70-90% parallel efficiency maintained
 - **Throughput**: Petabyte-scale processing capabilities
 
-## 📚 Citation
+## Citation
 ```bibtex
 @inproceedings{bakyayita_kasozi_2026,
   title = {Hybrid Parallel Data Transformation in Modern Information Systems: An MPI–OpenMP Approach},
