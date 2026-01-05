@@ -32,7 +32,7 @@ transformation pipelines.
 ## 🔬 Research Contributions
 - **Theoretical**: Extended Bernstein conditions for data transformation
 - **Practical**: Production-ready MPI+OpenMP framework
-- **Empirical**: 10-100x speedup vs. traditional approaches (Bakyayita & Kasozi, 2024)
+- **Empirical**: 10-100x speedup vs. traditional approaches (Bakyayita & Kasozi, 2026)
 - **Methodological**: New benchmarks and evaluation techniques
 
 ## 🚀 Key Features
