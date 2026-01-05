@@ -1,3 +1,5 @@
+# Hybrid Parallel Data Transformation in Modern Information Systems: An MPI–OpenMP Approach
+
 Implementation of research on applying HPC techniques (MPI, OpenMP) to enterprise data transformation. Features Bernstein condition analysis, hybrid parallelism, and empirical validation showing order-of-magnitude improvements.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
@@ -10,7 +12,6 @@ Implementation of research on applying HPC techniques (MPI, OpenMP) to enterpris
 ![Research](https://img.shields.io/badge/Research-purple)
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 
-# Hybrid Parallel Data Transformation in Modern Information Systems: An MPI–OpenMP Approach
 
 **Research Project**: Bridging High-Performance Computing (HPC) with enterprise 
 data systems through novel MPI+OpenMP hybrid parallelism. Features Bernstein condition 
