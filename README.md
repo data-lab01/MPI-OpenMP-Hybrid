@@ -34,4 +34,4 @@ transformation pipelines.
 
 🔗 [Paper] | 📈 [Benchmarks] | 🛠️ [Documentation]
 
-Tags: #HPC #DataEngineering #MPI #OpenMP #Research #BigData #ETL #ParallelComputing
+#HPC #DataEngineering #MPI #OpenMP #Research #BigData #ETL #ParallelComputing
