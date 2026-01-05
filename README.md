@@ -6,6 +6,9 @@
 
 *Implementation of research applying HPC techniques (MPI, OpenMP) to enterprise data transformation, featuring Bernstein condition analysis, hybrid parallelism, and empirical validation demonstrating order-of-magnitude improvements.*
 
+![Architecture Overview](https://via.placeholder.com/800x400/CC092F/FFFFFF?text=MPI-OpenMP+Hybrid+Architecture+Diagram)
+*Figure 1: Hybrid MPI–OpenMP architecture for parallel data transformation*
+
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![MPI](https://img.shields.io/badge/MPI-3.1+-orange)
 ![OpenMP](https://img.shields.io/badge/OpenMP-4.5+-green)
@@ -38,7 +41,11 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 - **Resource Optimization**: Energy-aware and fault-tolerant scheduling
 - **Real-World Validation**: Case studies in finance, healthcare, e-commerce
 
-## 📊 Performance Metrics
+## 📊 Performance Results
+
+![Performance Scaling](https://via.placeholder.com/600x300/0056A3/FFFFFF?text=Performance+Scaling:+47x+on+64-node+Cluster)
+*Figure 2: Performance scaling across cluster sizes*
+
 - **Speedup**: 47× on 64-node clusters
 - **Scalability**: Near-linear scaling to 1,000+ nodes
 - **Efficiency**: 70-90% parallel efficiency maintained
