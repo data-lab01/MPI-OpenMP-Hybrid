@@ -5,6 +5,7 @@ Implementation of research on applying HPC techniques (MPI, OpenMP) to enterpris
 ![MPI](https://img.shields.io/badge/MPI-3.1+-orange)
 ![OpenMP](https://img.shields.io/badge/OpenMP-4.5+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+[![Faculty](https://img.shields.io/badge/Faculty-Science_&_Technology-0056A3)]()
 ![Research](https://img.shields.io/badge/Research-purple)
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 
@@ -34,4 +35,4 @@ transformation pipelines.
 
 🔗 [Paper] | 📈 [Benchmarks] | 🛠️ [Documentation]
 
-#HPC #DataEngineering #MPI #OpenMP #Research #BigData #ETL #ParallelComputing
+#HPC #DataEngineering #MPI #OpenMP #Research #BigData #ETL #ParallelComputing #Uganda Martrys Univervsity
