@@ -47,7 +47,7 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 <div align="center">
   <img src="Computation1.png" alt="Performance Results" width="500">
   <br>
-  <em>Figure 3: Performance Scaling and Efficiency Metrics</em>
+  <em>Figure 2: Performance Scaling and Efficiency Metrics</em>
 </div>
 
 - **Speedup**: 47× on 64-node clusters
