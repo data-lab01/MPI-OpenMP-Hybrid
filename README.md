@@ -4,10 +4,10 @@
 **Affiliation**: Uganda Martyrs University, Faculty of Science & Technology  
 **Conference**: IWOCL 2026: International Workshop on OpenCL, SYCL, and SPIR-V, Heilbronn, Germany  
 
-*Implementation of research applying HPC techniques (MPI, OpenMP) to enterprise data transformation, featuring Bernstein condition analysis, hybrid parallelism, and empirical validation demonstrating order-of-magnitude improvements.*
+![Project Banner](github.png)
+*Figure 1: Hybrid MPI-OpenMP Architecture Overview | Uganda Martyrs University*
 
-![Architecture Overview](https://via.placeholder.com/800x400/CC092F/FFFFFF?text=MPI-OpenMP+Hybrid+Architecture+Diagram)
-*Figure 1: Hybrid MPI–OpenMP architecture for parallel data transformation*
+*Implementation of research applying HPC techniques (MPI, OpenMP) to enterprise data transformation, featuring Bernstein condition analysis, hybrid parallelism, and empirical validation demonstrating order-of-magnitude improvements.*
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![MPI](https://img.shields.io/badge/MPI-3.1+-orange)
@@ -30,6 +30,13 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 > **Researchers**: Robert W. Bakyayita & J. Brian Kasozi  
 
 ## 🔬 Research Contributions
+
+<div align="center">
+  <img src="github.png" alt="Research Methodology" width="600">
+  <br>
+  <em>Figure 2: Research Methodology and Implementation Pipeline</em>
+</div>
+
 - **Theoretical**: Extended Bernstein conditions for parallel data transformation
 - **Architectural**: Production-ready MPI+OpenMP hybrid framework
 - **Empirical**: 10-100x speedup vs. traditional ETL approaches (Bakyayita & Kasozi, 2026)
@@ -41,10 +48,13 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 - **Resource Optimization**: Energy-aware and fault-tolerant scheduling
 - **Real-World Validation**: Case studies in finance, healthcare, e-commerce
 
-## 📊 Performance Results
+## 📊 Performance Metrics
 
-![Performance Scaling](https://via.placeholder.com/600x300/0056A3/FFFFFF?text=Performance+Scaling:+47x+on+64-node+Cluster)
-*Figure 2: Performance scaling across cluster sizes*
+<div align="center">
+  <img src="github.png" alt="Performance Results" width="500">
+  <br>
+  <em>Figure 3: Performance Scaling and Efficiency Metrics</em>
+</div>
 
 - **Speedup**: 47× on 64-node clusters
 - **Scalability**: Near-linear scaling to 1,000+ nodes
