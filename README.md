@@ -1,11 +1,13 @@
 # MPI-OpenMP-Hybrid
-Implementation of research on applying HPC techniques (MPI, OpenMP) to enterprise data  transformation. Features Bernstein condition analysis, hybrid parallelism, and  empirical validation showing order-of-magnitude improvements.
+Implementation of research on applying HPC techniques (MPI, OpenMP) to enterprise data transformation. Features Bernstein condition analysis, hybrid parallelism, and empirical validation showing order-of-magnitude improvements.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![MPI](https://img.shields.io/badge/MPI-3.1+-orange)
 ![OpenMP](https://img.shields.io/badge/OpenMP-4.5+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-[![Faculty](https://img.shields.io/badge/Faculty-Science_&_Technology-0056A3)]()
+[![UMU](https://img.shields.io/badge/Uganda_Martyrs_University-CC092F?style=flat&logo=university&logoColor=white)](https://www.umu.ac.ug)
+[![Faculty](https://img.shields.io/badge/Faculty-Science_%26_Technology-0056A3)]()
+[![Authors](https://img.shields.io/badge/Authors-Bakyayita_%26_Kasozi-FF6B6B)]()
 ![Research](https://img.shields.io/badge/Research-purple)
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 
@@ -16,10 +18,19 @@ data systems through novel MPI+OpenMP hybrid parallelism. Features Bernstein con
 analysis for parallel correctness, achieving 10-100x speedup on petabyte-scale data 
 transformation pipelines.
 
+**Authors**: Robert W. Bakyayita & J. Brian Kasozi  
+**Affiliation**: Uganda Martyrs University, Faculty of Science & Technology
+
+## 🏫 Academic Context
+> **Uganda Martyrs University** | **Faculty of Science & Technology**  
+> **Researchers**: Robert W. Bakyayita & J. Brian Kasozi  
+> This research was conducted as part of advanced HPC studies at UMU, demonstrating 
+> cutting-edge parallel computing applications in enterprise systems.
+
 ## 🔬 Research Contributions
 - **Theoretical**: Extended Bernstein conditions for data transformation
 - **Practical**: Production-ready MPI+OpenMP framework
-- **Empirical**: 10-100x speedup vs. traditional approaches
+- **Empirical**: 10-100x speedup vs. traditional approaches (Bakyayita & Kasozi, 2024)
 - **Methodological**: New benchmarks and evaluation techniques
 
 ## 🚀 Key Features
@@ -33,6 +44,14 @@ transformation pipelines.
 - Near-linear scaling to 1000+ nodes
 - 70-90% parallel efficiency maintained
 
-🔗 [Paper] | 📈 [Benchmarks] | 🛠️ [Documentation]
-
-#HPC #DataEngineering #MPI #OpenMP #Research #BigData #ETL #ParallelComputing #Uganda Martrys Univervsity
+## 📚 Citation
+If you use this work, please cite:
+```bibtex
+@article{bakyayita_kasozi_2024,
+  title = {MPI-OpenMP Hybrid Data Transformation Framework},
+  author = {Bakyayita, Robert W. and Kasozi, J. Brian},
+  journal = {Uganda Martyrs University Research Journal},
+  institution = {Uganda Martyrs University, Faculty of Science \& Technology},
+  year = {2024},
+  url = {https://github.com/data-lab01/MPI-OpenMP-Hybrid}
+}
