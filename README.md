@@ -13,7 +13,8 @@ Implementation of research on applying HPC techniques (MPI, OpenMP) to enterpris
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 
 
-**Research Project**: Bridging High-Performance Computing (HPC) with enterprise 
+## **Research Project**: 
+Bridging High-Performance Computing (HPC) with enterprise 
 data systems through novel MPI+OpenMP hybrid parallelism. Features Bernstein condition 
 analysis for parallel correctness, achieving 10-100x speedup on petabyte-scale data 
 transformation pipelines.
