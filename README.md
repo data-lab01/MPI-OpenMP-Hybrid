@@ -4,8 +4,8 @@
 **Affiliation**: Uganda Martyrs University, Faculty of Science & Technology  
 **Conference**: IWOCL 2026: International Workshop on OpenCL, SYCL, and SPIR-V, Heilbronn, Germany  
 
-![Project Banner](github.png)
-*Figure 1: Hybrid MPI-OpenMP Architecture Overview | Uganda Martyrs University*
+![Project Banner](bernsteins conditions.png)
+*Figure 1: theoretical Overview | Uganda Martyrs University*
 
 *Implementation of research applying HPC techniques (MPI, OpenMP) to enterprise data transformation, featuring Bernstein condition analysis, hybrid parallelism, and empirical validation demonstrating order-of-magnitude improvements.*
 
