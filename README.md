@@ -24,8 +24,10 @@ transformation pipelines.
 ## 🏫 Academic Context
 > **Uganda Martyrs University** | **Faculty of Science & Technology**  
 > **Researchers**: Robert W. Bakyayita & J. Brian Kasozi  
-> This research was conducted as part of advanced HPC studies at UMU, demonstrating 
-> cutting-edge parallel computing applications in enterprise systems.
+> This research was conducted as part of IWOCL 2026: International Conference on OpenCL and SYCL
+> Heilbronn School of Computation, Heilbronn, Germany, May 6-8, 2026 and advanced HPC studies at UMU,
+> demonstrating cutting-edge parallel computing applications in enterprise systems.
+
 
 ## 🔬 Research Contributions
 - **Theoretical**: Extended Bernstein conditions for data transformation
