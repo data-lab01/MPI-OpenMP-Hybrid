@@ -4,7 +4,6 @@
 **Affiliation**: Uganda Martyrs University, Faculty of Science & Technology  
 **Conference**: IWOCL 2026: International Workshop on OpenCL, SYCL, and SPIR-V, Heilbronn, Germany  
 
-![Project Banner](bernsteins conditions.png)
 ![Project Banner](github.png)
 *Figure 1: Conclusions Overview | Uganda Martyrs University*
 
@@ -32,12 +31,6 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 
 ## 🔬 Research Contributions
 
-<div align="center">
-  <img src="github.png" alt="Research Methodology" width="600">
-  <br>
-  <em>Figure 2: Research Methodology and Implementation Pipeline</em>
-</div>
-
 - **Theoretical**: Extended Bernstein conditions for parallel data transformation
 - **Architectural**: Production-ready MPI+OpenMP hybrid framework
 - **Empirical**: 10-100x speedup vs. traditional ETL approaches (Bakyayita & Kasozi, 2026)
@@ -52,7 +45,7 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 ## 📊 Performance Metrics
 
 <div align="center">
-  <img src="github.png" alt="Performance Results" width="500">
+  <img src="Computation1.png" alt="Performance Results" width="500">
   <br>
   <em>Figure 3: Performance Scaling and Efficiency Metrics</em>
 </div>
