@@ -47,7 +47,7 @@ transformation pipelines.
 ## 📚 Citation
 If you use this work, please cite:
 ```bibtex
-@article{bakyayita_kasozi_2024,
+@article{bakyayita_kasozi_2026,
   title = {MPI-OpenMP Hybrid Data Transformation Framework},
   author = {Bakyayita, Robert W. and Kasozi, J. Brian},
   journal = {Uganda Martyrs University Research Journal},
