@@ -21,7 +21,7 @@
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 
 ## Abstract
-This research bridges High-Performance Computing (HPC) with enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework. Featuring Bernstein condition analysis for parallel correctness, the approach achieves 10-100x speedup on petabyte-scale data transformation pipelines. Presented at IWOCL 2026 and developed at Uganda Martyrs University.
+This research bridges High-Performance Computing (HPC) with enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework (TransForgeX1). Featuring Bernstein condition analysis for parallel correctness, the approach achieves 10-100x speedup on petabyte-scale data transformation pipelines. Presented at IWOCL 2026 and developed at Uganda Martyrs University.
 
 ## Academic Context
 > **Presented at**: IWOCL 2026 – International Workshop on OpenCL, SYCL, and SPIR-V  
