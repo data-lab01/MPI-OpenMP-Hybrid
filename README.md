@@ -58,7 +58,7 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 ## Citation
 ```bibtex
 @inproceedings{bakyayita_kasozi_2026,
-  title = {Hybrid Parallel Data Transformation in Modern Information Systems: An MPI–OpenMP Approach},
+  title = {TransForgeX1: A Hybrid MPI–OpenMP Framework for Parallel Data Transformation in Enterprise Information Systems},
   author = {Bakyayita, Robert W. and Kasozi, J. Brian},
   booktitle = {Proceedings of the International Workshop on OpenCL, SYCL, and SPIR-V (IWOCL 2026)},
   year = {2026},
