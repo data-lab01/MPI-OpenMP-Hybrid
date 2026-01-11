@@ -1,4 +1,4 @@
-# Hybrid Parallel Data Transformation in Modern Information Systems: An MPI–OpenMP Approach
+# TransForgeX1: A Hybrid MPI–OpenMP Framework for Parallel Data Transformation in Enterprise Information Systems
 
 **Authors**: Robert W. Bakyayita & J. Brian Kasozi  
 **Affiliation**: Uganda Martyrs University, Faculty of Science & Technology  
