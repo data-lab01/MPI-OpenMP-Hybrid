@@ -1,8 +1,10 @@
-# TransForgeX1: A Hybrid MPI–OpenMP Framework for Parallel Data Transformation in Enterprise Information Systems
+# TransForgeX1: A Bridge to Future Heterogeneous HPC for Enterprise Data Transformation
 
 **Authors**: Robert W. Bakyayita & J. Brian Kasozi  
 **Affiliation**: Uganda Martyrs University, Faculty of Science & Technology  
-**Conference**: IWOCL 2026: International Workshop on OpenCL, SYCL, and SPIR-V, Heilbronn, Germany  
+**Conference**: FCW26 2026: International Workshop on Future Computing, Stuttgart, Germany, March 16-17, 2026 
+
+
 
 ![Project Banner](github.png)
 *Figure 1: Conclusions Overview | Uganda Martyrs University*
