@@ -17,13 +17,18 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 [![UMU](https://img.shields.io/badge/Uganda_Martyrs_University-CC092F?style=flat&logo=university&logoColor=white)](https://www.umu.ac.ug)
 [![Faculty](https://img.shields.io/badge/Faculty-Science_%26_Technology-0056A3)]()
-[![Conference](https://img.shields.io/badge/IWOCL_2026-Conference-blueviolet)]()
-[![DOI](https://img.shields.io/badge/DOI-10.xxxx/xxxxx-00a8ff)]()
 ![Research](https://img.shields.io/badge/Research-purple)
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
 [![FCW26](https://img.shields.io/badge/Workshop-FCW26-007EC6)](https://www.hlrs.de/fcw26)
 [![arXiv](https://img.shields.io/badge/arXiv-Preprint-b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![C++](https://img.shields.io/badge/C++-17+-00599C)
+[![arXiv](https://img.shields.io/badge/arXiv-Preprint-b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
+[![DOI](https://img.shields.io/badge/DOI-10.1145%2FXXXXXXX-00A0D0)](https://doi.org/10.1145/XXXXXXX)
+[![HPC](https://img.shields.io/badge/HPC-Hybrid_Computing-8A2BE2)]()
+[![Performance](https://img.shields.io/badge/Speedup-3.5x_vs_Spark-FF6B6B)]()
+[![Energy](https://img.shields.io/badge/Energy-2.8x_efficient-32CD32)]()
+[![Repo](https://img.shields.io/github/stars/data-lab01/TransForgeX1?style=social)](https://github.com/data-lab01/TransForgeX1)
 
 ## Abstract
 This research bridges High-Performance Computing (HPC) with future enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework (TransForgeX1), designed as a scalable software substrate for emerging heterogeneous architectures. By integrating Bernstein condition analysis for parallel correctness and adaptive runtime optimizations, the framework achieves significant speedups and energy efficiency on petabyte-scale data transformation pipelines. Experimental results demonstrate up to 3.5× performance improvement over Apache Spark and 2.8× better energy efficiency, positioning HPC-inspired parallelism as essential for next-generation analytics in the exascale era. Developed in collaboration with Uganda Martyrs University and aligned with forward-looking HPC research themes.
