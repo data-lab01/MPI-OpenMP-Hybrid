@@ -28,7 +28,8 @@
 [![HPC](https://img.shields.io/badge/HPC-Hybrid_Computing-8A2BE2)]()
 [![Performance](https://img.shields.io/badge/Speedup-3.5x_vs_Spark-FF6B6B)]()
 [![Energy](https://img.shields.io/badge/Energy-2.8x_efficient-32CD32)]()
-[![Repo](https://img.shields.io/github/stars/data-lab01/TransForgeX1?style=social)](https://github.com/data-lab01/TransForgeX1)
+[![Repo](https://img.shields.io/github/stars/data-lab01/MPI-OpenMP-Hybrid?style=social)](https://github.com/data-lab01/MPI-OpenMP-Hybrid)
+
 
 ## Abstract
 This research bridges High-Performance Computing (HPC) with future enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework (TransForgeX1), designed as a scalable software substrate for emerging heterogeneous architectures. By integrating Bernstein condition analysis for parallel correctness and adaptive runtime optimizations, the framework achieves significant speedups and energy efficiency on petabyte-scale data transformation pipelines. Experimental results demonstrate up to 3.5× performance improvement over Apache Spark and 2.8× better energy efficiency, positioning HPC-inspired parallelism as essential for next-generation analytics in the exascale era. Developed in collaboration with Uganda Martyrs University and aligned with forward-looking HPC research themes.
