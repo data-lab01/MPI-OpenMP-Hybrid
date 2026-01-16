@@ -19,15 +19,19 @@
 [![DOI](https://img.shields.io/badge/DOI-10.xxxx/xxxxx-00a8ff)]()
 ![Research](https://img.shields.io/badge/Research-purple)
 ![Performance](https://img.shields.io/badge/Performance-100x%2B-red)
+[![FCW26](https://img.shields.io/badge/Workshop-FCW26-007EC6)](https://www.hlrs.de/fcw26)
+[![arXiv](https://img.shields.io/badge/arXiv-Preprint-b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Abstract
-This research bridges High-Performance Computing (HPC) with enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework (TransForgeX1). Featuring Bernstein condition analysis for parallel correctness, the approach achieves 10-100x speedup on petabyte-scale data transformation pipelines. Presented at IWOCL 2026 and developed at Uganda Martyrs University.
+This research bridges High-Performance Computing (HPC) with future enterprise data systems through a novel MPI+OpenMP hybrid parallelism framework (TransForgeX1), designed as a scalable software substrate for emerging heterogeneous architectures. By integrating Bernstein condition analysis for parallel correctness and adaptive runtime optimizations, the framework achieves significant speedups and energy efficiency on petabyte-scale data transformation pipelines. Experimental results demonstrate up to 3.5× performance improvement over Apache Spark and 2.8× better energy efficiency, positioning HPC-inspired parallelism as essential for next-generation analytics in the exascale era. Developed in collaboration with Uganda Martyrs University and aligned with forward-looking HPC research themes.
+
 
 ## Academic Context
-> **Presented at**: IWOCL 2026 – International Workshop on OpenCL, SYCL, and SPIR-V  
-> **Venue**: Heilbronn School of Computation, Heilbronn, Germany | May 6–8, 2026  
-> **Institutional Support**: Uganda Martyrs University, Faculty of Science & Technology  
-> **Researchers**: Robert W. Bakyayita & J. Brian Kasozi  
+**Presented at:** FCW26 – Future Computing Workshop 2026  
+**Venue:** HLRS (High-Performance Computing Center Stuttgart), Stuttgart, Germany | March 16–17, 2026  
+**Institutional Support:** Uganda Martyrs University, Faculty of Science & Technology  
+**Researchers:** Robert W. Bakayyita & J. Brian Kasozi  
 
 ## Research Contributions
 
@@ -58,12 +62,10 @@ This research bridges High-Performance Computing (HPC) with enterprise data syst
 ## Citation
 ```bibtex
 @inproceedings{bakyayita_kasozi_2026,
-  title = {TransForgeX1: A Hybrid MPI–OpenMP Framework for Parallel Data Transformation in Enterprise Information Systems},
+  title = {TransForgeX1: A Bridge to Future Heterogeneous HPC for Enterprise Data Transformation},
   author = {Bakyayita, Robert W. and Kasozi, J. Brian},
-  booktitle = {Proceedings of the International Workshop on OpenCL, SYCL, and SPIR-V (IWOCL 2026)},
+  booktitle = {Proceedings of the International Workshop on Future Computing (FCW26 2026)},
   year = {2026},
-  pages = {1--10},
-  publisher = {ACM},
-  doi = {10.1145/xxxxxx.xxxxxx},
+  pages = {1-10},
   url = {https://github.com/data-lab01/MPI-OpenMP-Hybrid}
 }
