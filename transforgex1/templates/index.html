@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 3rem 0 2rem;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 0%, var(--primary-300) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.125rem;
+        color: var(--gray-400);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .version-badge {
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.2);
+        color: var(--primary-300);
+        padding: 0.2rem 0.8rem;
+        border-radius: var(--radius-full);
+        font-size: 0.7rem;
+        margin-top: 0.5rem;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin: 3rem 0;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .feature-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        transition: all var(--transition-base);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .feature-card:hover::before {
+        left: 100%;
+    }
+    
+    .feature-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-desc {
+        font-size: 0.875rem;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 2rem 0 3rem;
+        flex-wrap: wrap;
+    }
+    
+    /* Footer Styles */
+    .professional-footer {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+    
+    .copyright {
+        color: var(--gray-500);
+        font-size: 0.8rem;
+    }
+    
+    .developer-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .developer-name {
+        color: var(--primary-300);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .org-name {
+        color: var(--gray-400);
+        font-size: 0.8rem;
+    }
+    
+    .footer-links {
+        display: flex;
+        gap: 1.5rem;
+    }
+    
+    .footer-links a {
+        color: var(--gray-500);
+        text-decoration: none;
+        font-size: 0.75rem;
+        transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+        color: var(--primary-300);
+    }
+    
+    .social-icons {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .social-icon {
+        color: var(--gray-500);
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+    
+    .social-icon:hover {
+        color: var(--primary-300);
+    }
+    
+    .badge-euro {
+        background: linear-gradient(135deg, #003399, #0066cc);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: var(--radius-full);
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+        .hero-title {
+            font-size: 2rem;
+        }
+        .footer-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        .developer-info {
+            justify-content: center;
+        }
+    }
+    
+    /* Animated counter */
+    .stat-value {
+        transition: all 0.3s ease;
+    }
+</style>
+
+<div class="hero-section">
+    <h1 class="hero-title"> TransForgeX1</h1>
+    <p class="hero-subtitle">Professional High-Performance Computing Simulation Platform</p>
+    <div class="version-badge">
+        Version 2.0.0 | EuroHPC Compliant
+    </div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value" id="systemStatus">Online</div>
+        <div class="stat-label">System Status</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="activeUsers">1</div>
+        <div class="stat-label">Active Sessions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="simulatedJobs">0</div>
+        <div class="stat-label">Jobs Simulated</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="euroCompliance">92%</div>
+        <div class="stat-label">EuroHPC Compliance</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">🎯 HPC Simulation Modules</h3>
+        <span class="badge-euro">🇪🇺 EuroHPC Ready</span>
+    </div>
+    
+    <div class="feature-grid">
+        <div class="feature-card" onclick="location.href='/scheduler'">
+            <div class="feature-icon">⚙️</div>
+            <div class="feature-title">Job Scheduler</div>
+            <div class="feature-desc">Slurm workload manager simulation with FIFO, Backfill, and Priority algorithms</div>
+            <span class="badge badge-info">Interactive</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/network'">
+            <div class="feature-icon">🌐</div>
+            <div class="feature-title">Network Topology</div>
+            <div class="feature-desc">Fat Tree, Dragonfly, and Torus interconnects with packet routing</div>
+            <span class="badge badge-info">3D Ready</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/algorithms'">
+            <div class="feature-icon">🧮</div>
+            <div class="feature-title">Parallel Algorithms</div>
+            <div class="feature-desc">Amdahl's Law, Gustafson's Law, and scaling analysis</div>
+            <span class="badge badge-success">Scientific</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/gpu'">
+            <div class="feature-icon">🎮</div>
+            <div class="feature-title">GPU Simulation</div>
+            <div class="feature-desc">Memory bandwidth, compute utilization, and performance modeling</div>
+            <span class="badge badge-success">Real-time</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/parallel-programming'">
+            <div class="feature-icon">🔄</div>
+            <div class="feature-title">MPI/OpenMP</div>
+            <div class="feature-desc">Parallel programming models with hybrid simulation</div>
+            <span class="badge badge-info">Educational</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/european-dashboard'">
+            <div class="feature-icon">🇪🇺</div>
+            <div class="feature-title">EU Standards</div>
+            <div class="feature-desc">EuroHPC JU, PRACE, GAIA-X compliance checking</div>
+            <span class="badge badge-warning">Enterprise</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/reproducibility'">
+            <div class="feature-icon">🔬</div>
+            <div class="feature-title">Reproducibility</div>
+            <div class="feature-desc">FAIR-compliant experiment tracking and validation</div>
+            <span class="badge badge-warning">FAIR</span>
+        </div>
+        
+        <div class="feature-card" onclick="location.href='/validation'">
+            <div class="feature-icon">✅</div>
+            <div class="feature-title">Validation Suite</div>
+            <div class="feature-desc">Real HPC system comparison and workload validation</div>
+            <span class="badge badge-success">Verified</span>
+        </div>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <button class="btn btn-primary" onclick="location.href='/scheduler'">🚀 Start Simulation</button>
+    <button class="btn btn-secondary" onclick="location.href='/reproducibility'">📊 View Reports</button>
+    <button class="btn btn-outline" onclick="location.href='/algorithms'">📚 Algorithm Reference</button>
+    <button class="btn btn-outline" onclick="toggleTheme()">🎨 Toggle Theme</button>
+</div>
+
+<!-- Professional Footer with Copyright -->
+<div class="professional-footer">
+    <div class="footer-content">
+        <div class="copyright">
+            © 2026 TransForgeX1. All Rights Reserved.
+        </div>
+        <div class="developer-info">
+            <span class="developer-name">👨‍💻 Developed by Robert Bakyayita</span>
+            <span class="org-name">| AQiS </span>
+        </div>
+        <div class="footer-links">
+            <a href="#" onclick="showAbout()">About</a>
+            <a href="#" onclick="showLicense()">License</a>
+            <a href="#" onclick="showContact()">Contact</a>
+            <a href="#" onclick="showDocumentation()">Documentation</a>
+        </div>
+        <div class="social-icons">
+            <a href="#" class="social-icon" onclick="showGitHub()">📌</a>
+            <a href="#" class="social-icon" onclick="showLinkedIn()">🔗</a>
+            <a href="#" class="social-icon" onclick="showTwitter()">🐦</a>
+        </div>
+    </div>
+    <div class="copyright" style="margin-top: 1rem; font-size: 0.7rem;">
+        <span class="badge-euro" style="background: transparent; color: var(--gray-500);">🔬 Scientific Computing Platform</span>
+        <span style="margin: 0 0.5rem">|</span>
+        <span>EuroHPC JU Compliant</span>
+        <span style="margin: 0 0.5rem">|</span>
+        <span>PRACE Benchmark Ready</span>
+        <span style="margin: 0 0.5rem">|</span>
+        <span>FAIR Data Principles</span>
+    </div>
+</div>
+
+<script>
+    // Animate stats
+    let jobCount = 0;
+    const jobInterval = setInterval(() => {
+        jobCount += Math.floor(Math.random() * 5);
+        document.getElementById('simulatedJobs').innerHTML = jobCount.toLocaleString();
+    }, 3000);
+    
+    // Update system status
+    const statusInterval = setInterval(async () => {
+        try {
+            const status = await apiCall('/api/scheduler/status');
+            if (status && status.utilization !== undefined) {
+                document.getElementById('systemStatus').innerHTML = status.utilization > 0 ? '🟢 Active' : '🟡 Idle';
+            }
+        } catch(e) {
+            // Keep default value if API fails
+        }
+    }, 5000);
+    
+    // Footer functions
+    function showAbout() {
+        ExplanationPopup.show('About TransForgeX1', `
+            <h4> TransForgeX1 HPC Simulator</h4>
+            <p><strong>Version:</strong> 2.0.0</p>
+            <p><strong>Developer:</strong> Robert Bakyayita</p>
+            <p><strong>Organization:</strong> AQiS (Advanced Quantum Simulation)</p>
+            <p><strong>Purpose:</strong> Educational and research platform for High-Performance Computing concepts</p>
+            <p><strong>Standards:</strong> EuroHPC JU, PRACE, GAIA-X compliant</p>
+            <hr>
+            <p>© 2024-2026 All Rights Reserved</p>
+        `);
+    }
+    
+    function showLicense() {
+        ExplanationPopup.show('License Information', `
+            <h4>📜 MIT License</h4>
+            <p>Copyright © 2024-2026 Robert Bakyayita (AQiS)</p>
+            <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software...</p>
+            <p>For full license terms, please contact the developer.</p>
+        `);
+    }
+    
+    function showContact() {
+        ExplanationPopup.show('Contact Information', `
+            <h4>📧 Contact</h4>
+            <p><strong>Developer:</strong> Robert Bakyayita</p>
+            <p><strong>Organization:</strong> AQiS </p>
+            <p><strong>Email:</strong> info@aqis.ai</p>
+            <p><strong>GitHub:</strong> https://github.com/data-lab01/MPI-OpenMP-Hybrid</p>
+        `);
+    }
+    
+    function showDocumentation() {
+        window.open('/algorithms', '_blank');
+    }
+    
+    function showGitHub() {
+        ExplanationPopup.show('GitHub Repository', `
+            <h4>📦 TransForgeX1 on GitHub</h4>
+            <p>Repository: https://github.com/data-lab01/MPI-OpenMP-Hybrid</p>
+            <p>Star the project to support development!</p>
+        `);
+    }
+    
+    function showLinkedIn() {
+        ExplanationPopup.show('LinkedIn', `
+            <h4>🔗 Connect on LinkedIn</h4>
+            <p>linkedin.com/robertbakyayita1</p>
+        `);
+    }
+    
+    function showTwitter() {
+        ExplanationPopup.show('Twitter/X', `
+            <h4>🐦 Follow for Updates</h4>
+            <p>@TransForgeX1</p>
+        `);
+    }
+    
+    // Cleanup intervals on page unload
+    window.addEventListener('beforeunload', () => {
+        clearInterval(jobInterval);
+        clearInterval(statusInterval);
+    });
+</script>
+{% endblock %}

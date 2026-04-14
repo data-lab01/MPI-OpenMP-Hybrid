@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        color: white;
+    }
+    
+    .euro-badge {
+        background: #003399;
+        color: #FFD700;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .compliance-meter {
+        background: rgba(0,0,0,0.3);
+        border-radius: 0.5rem;
+        height: 30px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .compliance-fill {
+        background: linear-gradient(90deg, #00b894, #00cec9);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        transition: width 0.5s;
+    }
+    
+    .metric {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .metric-label {
+        font-weight: bold;
+    }
+    
+    .metric-value {
+        font-family: monospace;
+        font-size: 1.1rem;
+    }
+    
+    .gold { color: #FFD700; }
+    .silver { color: #C0C0C0; }
+    .bronze { color: #CD7F32; }
+</style>
+
+<div class="page-header">
+    <h2>🇪🇺 European HPC Compliance Dashboard</h2>
+    <p>EuroHPC JU, PRACE, and GAIA-X Standards</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- EuroHPC Status Card -->
+    <div class="dashboard-card">
+        <div class="euro-badge">🇪🇺 EuroHPC JU</div>
+        <h3>System Classification</h3>
+        <div id="eurohpcStatus" class="metric">
+            <span class="metric-label">Tier:</span>
+            <span class="metric-value" id="tier">Calculating...</span>
+        </div>
+        <div class="compliance-meter">
+            <div id="complianceFill" class="compliance-fill" style="width: 0%">0%</div>
+        </div>
+        <div id="complianceDetails"></div>
+    </div>
+    
+    <!-- Energy Efficiency Card -->
+    <div class="dashboard-card">
+        <div class="euro-badge">🌱 Green HPC</div>
+        <h3>Energy Metrics</h3>
+        <div class="metric">
+            <span>PUE Score:</span>
+            <span id="pueScore">-</span>
+        </div>
+        <div class="metric">
+            <span>Carbon Footprint:</span>
+            <span id="carbonFootprint">-</span>
+        </div>
+        <div class="metric">
+            <span>Renewable %:</span>
+            <span id="renewable">-</span>
+        </div>
+        <button id="optimizeEnergy" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+            💡 Get EU Compliance Tips
+        </button>
+    </div>
+    
+    <!-- PRACE Benchmark Card -->
+    <div class="dashboard-card">
+        <div class="euro-badge">📊 PRACE</div>
+        <h3>PRACE Score</h3>
+        <div id="praceScore" class="metric-value" style="font-size: 2rem; text-align: center;">-</div>
+        <div id="praceRating"></div>
+        <div id="praceComponents"></div>
+    </div>
+    
+    <!-- GAIA-X Compliance Card -->
+    <div class="dashboard-card">
+        <div class="euro-badge">🔒 GAIA-X</div>
+        <h3>Data Infrastructure</h3>
+        <div id="gaiaxStatus"></div>
+        <button id="checkDataCompliance" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+            🔍 Check Compliance
+        </button>
+    </div>
+</div>
+
+<!-- EPI Processor Simulation -->
+<div class="dashboard-card" style="margin-bottom: 2rem;">
+    <div class="euro-badge">🖥️ European Processor Initiative</div>
+    <h3>EPI RISC-V Processor Simulator</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+            <label>EPI Model:</label>
+            <select id="epiModel" class="select" style="width: 100%;">
+                <option value="Rhea">Rhea (32 cores, 0.5 TFLOPS)</option>
+                <option value="Zeus">Zeus (128 cores, 2.5 TFLOPS)</option>
+                <option value="Poseidon">Poseidon (512 cores, 12 TFLOPS)</option>
+            </select>
+            <label style="margin-top: 1rem;">Workload (TFLOPS):</label>
+            <input type="number" id="workload" value="100" step="10">
+            <button id="simulateEPI" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Simulate</button>
+        </div>
+        <div id="epiResults">
+            <div class="metric"><span>Compute Time:</span><span id="computeTime">-</span></div>
+            <div class="metric"><span>Energy:</span><span id="epiEnergy">-</span></div>
+            <div class="metric"><span>vs x86:</span><span id="epiComparison">-</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadEuroHPCStatus() {
+        const response = await fetch('/api/eurohpc/status');
+        const data = await response.json();
+        
+        document.getElementById('tier').innerHTML = data.tier;
+        document.getElementById('complianceFill').style.width = data.compliance_percentage + '%';
+        document.getElementById('complianceFill').innerHTML = data.compliance_percentage + '%';
+        
+        let details = '';
+        for (const [key, value] of Object.entries(data.compliance)) {
+            details += `<div class="metric"><span>${key}:</span><span>${value ? '✅' : '❌'}</span></div>`;
+        }
+        document.getElementById('complianceDetails').innerHTML = details;
+    }
+    
+    async function loadEnergyMetrics() {
+        const response = await fetch('/api/energy/metrics');
+        const data = await response.json();
+        
+        document.getElementById('pueScore').innerHTML = data.pue;
+        document.getElementById('carbonFootprint').innerHTML = data.carbon_kg + ' kg CO₂';
+        document.getElementById('renewable').innerHTML = data.renewable_percentage + '%';
+    }
+    
+    async function loadPRACEScore() {
+        const response = await fetch('/api/prace/score');
+        const data = await response.json();
+        
+        document.getElementById('praceScore').innerHTML = data.overall_score + '/100';
+        
+        let ratingClass = 'bronze';
+        if (data.rating === 'Gold') ratingClass = 'gold';
+        else if (data.rating === 'Silver') ratingClass = 'silver';
+        
+        document.getElementById('praceRating').innerHTML = `<div class="${ratingClass}" style="font-size: 1.5rem; text-align: center;">${data.rating} Rating</div>`;
+        
+        let components = '';
+        for (const [key, value] of Object.entries(data.components)) {
+            components += `<div class="metric"><span>${key}:</span><span>${value}%</span></div>`;
+        }
+        document.getElementById('praceComponents').innerHTML = components;
+    }
+    
+    document.getElementById('optimizeEnergy').onclick = async () => {
+        const response = await fetch('/api/energy/optimize');
+        const tips = await response.json();
+        alert(tips.tips.join('\n'));
+    };
+    
+    document.getElementById('simulateEPI').onclick = async () => {
+        const model = document.getElementById('epiModel').value;
+        const workload = parseFloat(document.getElementById('workload').value);
+        
+        const response = await fetch('/api/epi/simulate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({model: model, workload: workload})
+        });
+        const data = await response.json();
+        
+        document.getElementById('computeTime').innerHTML = data.compute_time_hours + ' hours';
+        document.getElementById('epiEnergy').innerHTML = data.energy_kwh + ' kWh';
+        document.getElementById('epiComparison').innerHTML = data.comparison;
+    };
+    
+    document.getElementById('checkDataCompliance').onclick = async () => {
+        const volume = prompt('Enter data volume in GB:', '1000');
+        const sensitivity = prompt('Data sensitivity (public/internal/confidential):', 'internal');
+        
+        const response = await fetch('/api/gaiax/check', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({volume: parseFloat(volume), sensitivity: sensitivity})
+        });
+        const data = await response.json();
+        
+        let statusHtml = '<div class="metric"><span>GDPR Compliant:</span><span>' + (data.gdpr_compliant ? '✅' : '❌') + '</span></div>';
+        statusHtml += '<div class="metric"><span>Encryption Required:</span><span>' + (data.encryption_required ? '✅' : '❌') + '</span></div>';
+        statusHtml += '<div class="metric"><span>Storage Location:</span><span>' + data.storage_location + '</span></div>';
+        statusHtml += '<div class="metric"><span>Tier:</span><span>' + data.tier + '</span></div>';
+        document.getElementById('gaiaxStatus').innerHTML = statusHtml;
+    };
+    
+    loadEuroHPCStatus();
+    loadEnergyMetrics();
+    loadPRACEScore();
+</script>
+{% endblock %}

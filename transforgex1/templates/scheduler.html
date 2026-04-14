@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .scheduler-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    /* Results Window Panel */
+    .results-window {
+        position: fixed;
+        right: 0;
+        top: 80px;
+        width: 380px;
+        background: rgba(17, 24, 39, 0.95);
+        backdrop-filter: blur(20px);
+        border-left: 3px solid var(--primary-500);
+        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+        box-shadow: var(--shadow-2xl);
+        z-index: 1000;
+        transition: transform 0.3s ease;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    
+    .results-window.collapsed {
+        transform: translateX(calc(100% - 40px));
+    }
+    
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--primary-600);
+        border-radius: var(--radius-xl) 0 0 0;
+        cursor: pointer;
+    }
+    
+    .results-title {
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .results-toggle {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
+    
+    .results-content {
+        padding: 1rem;
+    }
+    
+    .result-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-lg);
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid var(--primary-400);
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .result-card-title {
+        font-size: 0.8rem;
+        color: var(--primary-300);
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .result-card-value {
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .result-card-detail {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        margin-top: 0.25rem;
+    }
+    
+    .clear-results {
+        background: var(--gray-700);
+        border: none;
+        color: white;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        width: 100%;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .clear-results:hover {
+        background: var(--gray-600);
+    }
+    
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .control-bar {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .node-status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .node-card {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        transition: all var(--transition-base);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+    }
+    
+    .node-card:hover {
+        transform: translateY(-2px);
+        background: rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .node-card.node-idle {
+        border-left: 3px solid var(--success);
+    }
+    
+    .node-card.node-busy {
+        border-left: 3px solid var(--warning);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .node-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .node-load {
+        font-size: 0.75rem;
+        color: var(--gray-400);
+    }
+    
+    .queue-item {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: var(--radius-md);
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all var(--transition-fast);
+    }
+    
+    .queue-item:hover {
+        background: rgba(0, 0, 0, 0.3);
+        transform: translateX(4px);
+    }
+    
+    .empty-queue {
+        text-align: center;
+        padding: 2rem;
+        color: var(--gray-500);
+    }
+    
+    .job-submit-panel {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .job-submit-panel .form-group {
+        margin-bottom: 0;
+    }
+    
+    .job-submit-panel input {
+        width: 80px;
+    }
+    
+    .explanation-content {
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+    
+    .explanation-content strong {
+        color: var(--primary-300);
+    }
+    
+    /* Make room for results window */
+    .container {
+        margin-right: 400px;
+    }
+    
+    @media (max-width: 1024px) {
+        .results-window { width: 320px; }
+        .container { margin-right: 340px; }
+    }
+    
+    @media (max-width: 768px) {
+        .results-window { display: none; }
+        .container { margin-right: 0; }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.3s ease;
+    }
+</style>
+
+<!-- Results Window -->
+<div class="results-window" id="resultsWindow">
+    <div class="results-header" onclick="toggleResultsWindow()">
+        <div class="results-title">
+            📊 Simulation Results
+            <span id="resultsCount" style="background: rgba(255,255,255,0.2); padding: 0.1rem 0.4rem; border-radius: 10px; font-size: 0.7rem;">0</span>
+        </div>
+        <button class="results-toggle" id="toggleResultsBtn">◀</button>
+    </div>
+    <div class="results-content" id="resultsContent">
+        <div style="text-align: center; color: var(--gray-500); padding: 2rem;">
+            Job submissions and actions<br>Results will appear here
+        </div>
+    </div>
+    <button class="clear-results" onclick="clearAllResults()">Clear All Results</button>
+</div>
+
+<div class="scheduler-header">
+    <div>
+        <h2 style="margin-bottom: 0.25rem;">⚙️ Job Scheduler</h2>
+        <p style="color: var(--gray-400);">Slurm Workload Manager Simulation - FIFO, Backfill & Priority Scheduling</p>
+    </div>
+    <div class="control-bar">
+        <select id="schedulerType" class="form-select" style="width: auto;">
+            <option value="FIFO">📋 FIFO (First-In-First-Out)</option>
+            <option value="Backfill">🔄 Backfill (EASY-Backfill)</option>
+            <option value="Priority">⭐ Priority (Smallest First)</option>
+        </select>
+        <button id="startBtn" class="btn btn-success" title="Start simulation">▶ Start</button>
+        <button id="pauseBtn" class="btn btn-warning" title="Pause simulation">⏸ Pause</button>
+        <button id="resetBtn" class="btn btn-danger" title="Reset all jobs and nodes">⟳ Reset</button>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" id="utilization">0%</div>
+        <div class="stat-label">📊 Utilization</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="queueLength">0</div>
+        <div class="stat-label">📋 Queue Length</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="totalJobs">0</div>
+        <div class="stat-label">📈 Total Jobs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="completedJobs">0</div>
+        <div class="stat-label">✅ Completed</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">🖥️ Compute Nodes (8 Nodes Available)</h3>
+        <div class="job-submit-panel">
+            <div class="form-group">
+                <input type="number" id="jobNodes" class="form-input" value="2" min="1" max="8" step="1" style="width: 70px;">
+                <label class="form-label" style="display: inline; margin-left: 0.5rem;">nodes</label>
+            </div>
+            <div class="form-group">
+                <input type="number" id="jobTime" class="form-input" value="10" min="1" max="60" step="1" style="width: 70px;">
+                <label class="form-label" style="display: inline; margin-left: 0.5rem;">seconds</label>
+            </div>
+            <button id="submitBtn" class="btn btn-primary">+ Submit Job</button>
+        </div>
+    </div>
+    <div id="nodeGrid" class="node-status-grid"></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">📋 Job Queue</h3>
+        <span id="queueBadge" class="badge badge-info">0 pending</span>
+    </div>
+    <div id="queuePanel"></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">📖 Scheduling Algorithm Explanation</h3>
+        <button id="refreshExplanationBtn" class="btn btn-outline btn-sm" style="padding: 0.25rem 0.75rem;">⟳ Refresh</button>
+    </div>
+    <div id="explanationPanel" class="explanation-content"></div>
+</div>
+
+<script>
+    let simulationInterval = null;
+    let simulationResults = [];
+    
+    // Add result to window
+    function addResult(algorithmName, resultText, details) {
+        const resultsContent = document.getElementById('resultsContent');
+        const resultCard = document.createElement('div');
+        resultCard.className = 'result-card';
+        resultCard.innerHTML = `
+            <div class="result-card-title">${algorithmName}</div>
+            <div class="result-card-value">${resultText}</div>
+            ${details ? `<div class="result-card-detail">${details}</div>` : ''}
+        `;
+        
+        // Remove empty placeholder if present
+        if (resultsContent.children.length === 1 && resultsContent.children[0].style?.textAlign === 'center') {
+            resultsContent.innerHTML = '';
+        }
+        resultsContent.insertBefore(resultCard, resultsContent.firstChild);
+        
+        // Update count
+        const count = document.querySelectorAll('.result-card').length;
+        document.getElementById('resultsCount').innerText = count;
+        
+        // Limit to 20 results
+        while (document.querySelectorAll('.result-card').length > 20) {
+            const lastCard = document.querySelectorAll('.result-card')[document.querySelectorAll('.result-card').length - 1];
+            if (lastCard) lastCard.remove();
+        }
+    }
+    
+    function clearAllResults() {
+        document.getElementById('resultsContent').innerHTML = '<div style="text-align: center; color: var(--gray-500); padding: 2rem;">Job submissions and actions<br>Results will appear here</div>';
+        document.getElementById('resultsCount').innerText = '0';
+    }
+    
+    function toggleResultsWindow() {
+        const window = document.getElementById('resultsWindow');
+        const toggleBtn = document.getElementById('toggleResultsBtn');
+        if (window.classList.contains('collapsed')) {
+            window.classList.remove('collapsed');
+            toggleBtn.innerHTML = '◀';
+        } else {
+            window.classList.add('collapsed');
+            toggleBtn.innerHTML = '▶';
+        }
+    }
+    
+    // Toast notification helper
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) {
+            const newContainer = document.createElement('div');
+            newContainer.id = 'toastContainer';
+            newContainer.style.position = 'fixed';
+            newContainer.style.bottom = '2rem';
+            newContainer.style.right = '2rem';
+            newContainer.style.zIndex = '2000';
+            document.body.appendChild(newContainer);
+        }
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span>${message}</span>`;
+        toastContainer.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    async function updateStatus() {
+        try {
+            const status = await apiCall('/api/scheduler/status');
+            
+            document.getElementById('utilization').innerHTML = `${status.utilization}%`;
+            document.getElementById('queueLength').innerHTML = status.queue.length;
+            document.getElementById('totalJobs').innerHTML = status.total_jobs;
+            document.getElementById('completedJobs').innerHTML = status.completed_jobs;
+            document.getElementById('queueBadge').innerHTML = `${status.queue.length} pending`;
+            
+            const nodeGrid = document.getElementById('nodeGrid');
+            nodeGrid.innerHTML = '';
+            
+            status.nodes.forEach(node => {
+                const nodeCard = document.createElement('div');
+                nodeCard.className = `node-card ${node.busy ? 'node-busy' : 'node-idle'}`;
+                nodeCard.setAttribute('data-tooltip', node.busy ? `Job #${node.job_id} running` : 'Node available');
+                nodeCard.innerHTML = `
+                    <div class="node-name">Node ${node.id}</div>
+                    ${node.busy ? `
+                        <div class="progress" style="margin: 0.5rem 0;">
+                            <div class="progress-bar" style="width: ${Math.min(100, (node.remaining_time / 10 * 100))}%"></div>
+                        </div>
+                        <div class="node-load">Job #${node.job_id} · ${node.remaining_time.toFixed(1)}s</div>
+                    ` : `
+                        <div class="node-load">✨ Available</div>
+                        <div class="node-load" style="font-size: 0.7rem;">8 CPUs ready</div>
+                    `}
+                `;
+                nodeGrid.appendChild(nodeCard);
+            });
+            
+            const queuePanel = document.getElementById('queuePanel');
+            if (status.queue.length === 0) {
+                queuePanel.innerHTML = '<div class="empty-queue">✨ No jobs in queue. Submit a job to get started!</div>';
+            } else {
+                queuePanel.innerHTML = '';
+                status.queue.forEach((job, index) => {
+                    const queueItem = document.createElement('div');
+                    queueItem.className = 'queue-item';
+                    queueItem.style.animation = `fadeIn 0.3s ease ${index * 0.05}s`;
+                    queueItem.innerHTML = `
+                        <div><strong>Job #${job.id}</strong><span class="badge ${job.status === 'running' ? 'badge-success' : 'badge-warning'}" style="margin-left: 0.5rem;">${job.status}</span></div>
+                        <div>⚙️ ${job.nodes} nodes · ⏱️ ${job.time}s</div>
+                    `;
+                    queuePanel.appendChild(queueItem);
+                });
+            }
+        } catch (error) {
+            console.error('Update status error:', error);
+        }
+    }
+    
+    async function updateExplanation() {
+        try {
+            const explanation = await apiCall('/api/scheduler/explanation');
+            const schedulerType = document.getElementById('schedulerType').value;
+            
+            let formulaDetails = '';
+            if (schedulerType === 'FIFO') formulaDetails = 'Jobs are executed strictly in order of arrival. First come, first served.';
+            else if (schedulerType === 'Backfill') formulaDetails = 'Small jobs can "backfill" around larger jobs if they don\'t delay the first job in queue.';
+            else formulaDetails = 'Jobs are prioritized by size - smaller jobs get higher priority to reduce fragmentation.';
+            
+            document.getElementById('explanationPanel').innerHTML = `
+                <div style="margin-bottom: 1rem;"><strong style="color: var(--primary-300); font-size: 1rem;">${explanation.name}</strong></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div><div style="font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.25rem;">📐 Formula</div><div style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: var(--radius-md);">${explanation.formula}</div></div>
+                    <div><div style="font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.25rem;">⏱️ Time Complexity</div><div style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: var(--radius-md);">${explanation.complexity}</div></div>
+                </div>
+                <div style="margin-bottom: 1rem;"><div style="font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.25rem;">💡 How it works</div><div style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: var(--radius-md);">${formulaDetails}</div></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div><div style="color: var(--success); margin-bottom: 0.25rem;">✓ Pros</div><div style="font-size: 0.875rem;">${explanation.pros}</div></div>
+                    <div><div style="color: var(--warning); margin-bottom: 0.25rem;">⚠ Cons</div><div style="font-size: 0.875rem;">${explanation.cons}</div></div>
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-md);">
+                    <div style="font-size: 0.75rem; color: var(--gray-400); margin-bottom: 0.25rem;">📊 Current Status</div>
+                    <div style="font-size: 0.875rem;">${explanation.calculation || 'Ready to schedule jobs'}</div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Update explanation error:', error);
+        }
+    }
+    
+    async function startSimulation() {
+        if (simulationInterval) clearInterval(simulationInterval);
+        simulationInterval = setInterval(async () => {
+            await apiCall('/api/scheduler/tick', 'POST');
+            await updateStatus();
+        }, 100);
+        addResult('Simulation Control', 'Started', 'Simulation is now running');
+        showToast('✅ Simulation started', 'success');
+    }
+    
+    async function pauseSimulation() {
+        if (simulationInterval) {
+            clearInterval(simulationInterval);
+            simulationInterval = null;
+            addResult('Simulation Control', 'Paused', 'Simulation stopped');
+            showToast('⏸ Simulation paused', 'info');
+        }
+    }
+    
+    async function resetSimulation() {
+        if (simulationInterval) {
+            clearInterval(simulationInterval);
+            simulationInterval = null;
+        }
+        await apiCall('/api/scheduler/reset', 'POST');
+        await updateStatus();
+        await updateExplanation();
+        addResult('Simulation Control', 'Reset', 'All jobs and nodes reset to initial state');
+        showToast('⟳ Simulation reset', 'info');
+    }
+    
+    async function submitJob() {
+        const nodes = parseInt(document.getElementById('jobNodes').value);
+        const time = parseInt(document.getElementById('jobTime').value);
+        
+        if (isNaN(nodes) || nodes < 1 || nodes > 8) {
+            showToast('Please enter valid nodes (1-8)', 'error');
+            return;
+        }
+        if (isNaN(time) || time < 1 || time > 60) {
+            showToast('Please enter valid time (1-60 seconds)', 'error');
+            return;
+        }
+        
+        await apiCall('/api/scheduler/submit', 'POST', { nodes, time });
+        await updateStatus();
+        addResult('Job Submitted', `${nodes} nodes, ${time}s`, `Job added to queue (${new Date().toLocaleTimeString()})`);
+        showToast(`📤 Job submitted: ${nodes} nodes for ${time}s`, 'success');
+    }
+    
+    async function changeSchedulerType() {
+        const type = document.getElementById('schedulerType').value;
+        await apiCall('/api/scheduler/scheduler_type', 'POST', { type });
+        await updateStatus();
+        await updateExplanation();
+        addResult('Scheduler Changed', type, `Switched to ${type} scheduling algorithm`);
+        showToast(`🔄 Switched to ${type} scheduling`, 'info');
+    }
+    
+    document.getElementById('startBtn').onclick = startSimulation;
+    document.getElementById('pauseBtn').onclick = pauseSimulation;
+    document.getElementById('resetBtn').onclick = resetSimulation;
+    document.getElementById('submitBtn').onclick = submitJob;
+    document.getElementById('schedulerType').onchange = changeSchedulerType;
+    document.getElementById('refreshExplanationBtn').onclick = updateExplanation;
+    
+    document.getElementById('jobNodes').onkeypress = (e) => { if (e.key === 'Enter') submitJob(); };
+    document.getElementById('jobTime').onkeypress = (e) => { if (e.key === 'Enter') submitJob(); };
+    
+    updateStatus();
+    updateExplanation();
+    setInterval(async () => { await updateStatus(); }, 2000);
+</script>
+
+<style>
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.75rem; }
+    .form-input { text-align: center; }
+    .stat-value { transition: all 0.3s ease; }
+</style>
+{% endblock %}

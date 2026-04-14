@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .page-header {
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    /* Results Window Panel */
+    .results-window {
+        position: fixed;
+        right: 0;
+        top: 80px;
+        width: 350px;
+        background: rgba(17, 24, 39, 0.95);
+        backdrop-filter: blur(20px);
+        border-left: 3px solid var(--primary-500);
+        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+        box-shadow: var(--shadow-2xl);
+        z-index: 1000;
+        transition: transform 0.3s ease;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+    
+    .results-window.collapsed {
+        transform: translateX(calc(100% - 40px));
+    }
+    
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--primary-600);
+        border-radius: var(--radius-xl) 0 0 0;
+        cursor: pointer;
+    }
+    
+    .results-title {
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .results-toggle {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    
+    .results-content {
+        padding: 0.75rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .result-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-lg);
+        padding: 0.6rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid var(--primary-400);
+        font-size: 0.8rem;
+    }
+    
+    .result-card-title {
+        font-size: 0.7rem;
+        color: var(--primary-300);
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+    }
+    
+    .result-card-value {
+        font-size: 0.85rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .result-card-detail {
+        font-size: 0.65rem;
+        color: var(--gray-400);
+        margin-top: 0.2rem;
+    }
+    
+    .clear-results {
+        background: var(--gray-700);
+        border: none;
+        color: white;
+        padding: 0.4rem;
+        border-radius: var(--radius-md);
+        width: calc(100% - 1.5rem);
+        margin: 0.5rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+    
+    .clear-results:hover {
+        background: var(--gray-600);
+    }
+    
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .controls {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .control-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .control-group h4 {
+        color: white;
+        margin: 0;
+    }
+
+    #selectedInfo {
+        color: white;
+        padding: 0.5rem;
+        background: rgba(0,0,0,0.3);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    canvas {
+        display: block;
+        margin: 0 auto;
+        border-radius: 1rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        background: #1e1e2e;
+    }
+    
+    /* Make room for results window */
+    .container {
+        margin-right: 370px;
+    }
+    
+    @media (max-width: 1024px) {
+        .results-window { width: 300px; }
+        .container { margin-right: 320px; }
+    }
+    
+    @media (max-width: 768px) {
+        .results-window { display: none; }
+        .container { margin-right: 0; }
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+    }
+</style>
+
+<!-- Results Window -->
+<div class="results-window" id="resultsWindow">
+    <div class="results-header" onclick="toggleResultsWindow()">
+        <div class="results-title">
+            📊 Network Results
+            <span id="resultsCount" style="background: rgba(255,255,255,0.2); padding: 0.1rem 0.4rem; border-radius: 10px; font-size: 0.65rem;">0</span>
+        </div>
+        <button class="results-toggle" id="toggleResultsBtn">◀</button>
+    </div>
+    <div class="results-content" id="resultsContent">
+        <div style="text-align: center; color: var(--gray-500); padding: 1rem; font-size: 0.8rem;">
+            Packet transmissions will appear here
+        </div>
+    </div>
+    <button class="clear-results" onclick="clearAllResults()">Clear All</button>
+</div>
+
+<div class="page-header">
+    <h2>🌐 Network Topology Simulator</h2>
+    <p style="color: var(--gray-400); margin-top: 0.5rem;">Fat Tree, Dragonfly & Torus - Click nodes to send packets</p>
+</div>
+
+<div class="controls">
+    <div class="control-group">
+        <h4>Topology:</h4>
+        <button class="btn btn-primary topology-btn" data-topology="fat_tree">🌳 Fat Tree</button>
+        <button class="btn btn-primary topology-btn" data-topology="dragonfly">🐉 Dragonfly</button>
+        <button class="btn btn-primary topology-btn" data-topology="torus">🔄 Torus</button>
+    </div>
+    <div class="control-group">
+        <h4>Selected:</h4>
+        <span id="selectedInfo">None</span>
+        <button id="sendPacketBtn" class="btn btn-success" disabled>Send Packet</button>
+    </div>
+</div>
+
+<canvas id="networkCanvas" width="800" height="500" style="background: #1e1e2e; border: 1px solid #333;"></canvas>
+
+<script>
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let topologyData = null;
+    let selectedSource = null;
+    let selectedDest = null;
+    let packetCount = 0;
+    let animationId = null;
+    
+    // Results functions
+    function addResult(title, value, detail) {
+        const resultsContent = document.getElementById('resultsContent');
+        const resultCard = document.createElement('div');
+        resultCard.className = 'result-card';
+        resultCard.innerHTML = `
+            <div class="result-card-title">${title}</div>
+            <div class="result-card-value">${value}</div>
+            ${detail ? `<div class="result-card-detail">${detail}</div>` : ''}
+        `;
+        
+        // Remove placeholder if exists
+        if (resultsContent.children.length === 1 && resultsContent.children[0].innerText?.includes('Packet transmissions')) {
+            resultsContent.innerHTML = '';
+        }
+        resultsContent.insertBefore(resultCard, resultsContent.firstChild);
+        
+        const count = document.querySelectorAll('.result-card').length;
+        document.getElementById('resultsCount').innerText = count;
+        
+        // Keep only last 15 results
+        while (document.querySelectorAll('.result-card').length > 15) {
+            const lastCard = document.querySelectorAll('.result-card')[document.querySelectorAll('.result-card').length - 1];
+            if (lastCard) lastCard.remove();
+        }
+    }
+    
+    function clearAllResults() {
+        document.getElementById('resultsContent').innerHTML = '<div style="text-align: center; color: var(--gray-500); padding: 1rem; font-size: 0.8rem;">Packet transmissions will appear here</div>';
+        document.getElementById('resultsCount').innerText = '0';
+    }
+    
+    function toggleResultsWindow() {
+        const window = document.getElementById('resultsWindow');
+        const toggleBtn = document.getElementById('toggleResultsBtn');
+        if (window.classList.contains('collapsed')) {
+            window.classList.remove('collapsed');
+            toggleBtn.innerHTML = '◀';
+        } else {
+            window.classList.add('collapsed');
+            toggleBtn.innerHTML = '▶';
+        }
+    }
+    
+    async function apiCall(endpoint, method = 'GET', data = null) {
+        try {
+            const options = { method: method, headers: { 'Content-Type': 'application/json' } };
+            if (data) options.body = JSON.stringify(data);
+            const response = await fetch(endpoint, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return null;
+        }
+    }
+    
+    async function loadTopology(topology) {
+        const data = await apiCall('/api/network/set_topology', 'POST', { topology });
+        if (data) {
+            topologyData = data;
+            drawNetwork();
+            
+            let topologyDesc = '';
+            if (topology === 'fat_tree') topologyDesc = 'Full bisection bandwidth';
+            else if (topology === 'dragonfly') topologyDesc = '3-hop routing';
+            else topologyDesc = 'Dimension-order routing';
+            
+            addResult('Topology', topology.toUpperCase(), `${topologyDesc} | ${topologyData.nodes.length} nodes`);
+        }
+    }
+    
+    function drawNetwork() {
+        if (!topologyData || !topologyData.nodes) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw links
+        topologyData.nodes.forEach(node => {
+            if (node.links) {
+                node.links.forEach(linkId => {
+                    const target = topologyData.nodes.find(n => n.id === linkId);
+                    if (target && node.id < linkId) {
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y);
+                        ctx.lineTo(target.x, target.y);
+                        ctx.strokeStyle = '#555';
+                        ctx.stroke();
+                    }
+                });
+            }
+        });
+        
+        // Draw packets
+        if (topologyData.packets && topologyData.packets.length > 0) {
+            topologyData.packets.forEach(packet => {
+                const source = topologyData.nodes.find(n => n.id === packet.source);
+                const dest = topologyData.nodes.find(n => n.id === packet.destination);
+                if (source && dest) {
+                    const x = source.x + (dest.x - source.x) * packet.progress;
+                    const y = source.y + (dest.y - source.y) * packet.progress;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fill();
+                }
+            });
+        }
+        
+        // Draw nodes
+        topologyData.nodes.forEach(node => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 16, 0, 2 * Math.PI);
+            
+            let color = '#6c5ce7';
+            if (selectedSource === node.id) color = '#00b894';
+            if (selectedDest === node.id) color = '#d63031';
+            
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(node.id, node.x, node.y);
+        });
+    }
+    
+    canvas.addEventListener('click', async (e) => {
+        if (!topologyData || !topologyData.nodes) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+        
+        let clickedNode = null;
+        for (const node of topologyData.nodes) {
+            const dx = mouseX - node.x;
+            const dy = mouseY - node.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 20) {
+                clickedNode = node;
+                break;
+            }
+        }
+        
+        if (clickedNode) {
+            if (selectedSource === null) {
+                selectedSource = clickedNode.id;
+                document.getElementById('selectedInfo').innerHTML = `Source: Node ${selectedSource}`;
+                addResult('Source', `Node ${selectedSource}`, 'Click destination');
+            } else if (selectedDest === null && selectedSource !== clickedNode.id) {
+                selectedDest = clickedNode.id;
+                document.getElementById('selectedInfo').innerHTML = `Source: ${selectedSource} → Dest: ${selectedDest}`;
+                document.getElementById('sendPacketBtn').disabled = false;
+                addResult('Destination', `Node ${selectedDest}`, `From ${selectedSource}`);
+            } else {
+                selectedSource = null;
+                selectedDest = null;
+                document.getElementById('selectedInfo').innerHTML = 'None';
+                document.getElementById('sendPacketBtn').disabled = true;
+            }
+            drawNetwork();
+        }
+    });
+    
+    document.getElementById('sendPacketBtn').onclick = async () => {
+        if (selectedSource !== null && selectedDest !== null) {
+            packetCount++;
+            
+            await apiCall('/api/network/send_packet', 'POST', {
+                source: selectedSource,
+                destination: selectedDest
+            });
+            
+            addResult(`Packet #${packetCount}`, `${selectedSource} → ${selectedDest}`, `Topology: ${topologyData?.topology || 'unknown'}`);
+            
+            selectedSource = null;
+            selectedDest = null;
+            document.getElementById('selectedInfo').innerHTML = 'None';
+            document.getElementById('sendPacketBtn').disabled = true;
+        }
+    };
+    
+    async function updateNetwork() {
+        const data = await apiCall('/api/network/update');
+        if (data) {
+            topologyData = data;
+            drawNetwork();
+        }
+        animationId = requestAnimationFrame(updateNetwork);
+    }
+    
+    document.querySelectorAll('.topology-btn').forEach(btn => {
+        btn.onclick = () => {
+            loadTopology(btn.dataset.topology);
+            selectedSource = null;
+            selectedDest = null;
+            packetCount = 0;
+            document.getElementById('selectedInfo').innerHTML = 'None';
+            document.getElementById('sendPacketBtn').disabled = true;
+        };
+    });
+    
+    // Initialize
+    loadTopology('fat_tree');
+    updateNetwork();
+    
+    // Cleanup animation on page unload
+    window.addEventListener('beforeunload', () => {
+        if (animationId) cancelAnimationFrame(animationId);
+    });
+</script>
+{% endblock %}

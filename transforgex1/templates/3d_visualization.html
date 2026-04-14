@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    #canvas3d {
+        width: 100%;
+        height: 600px;
+        background: #1a1a2e;
+        border-radius: 1rem;
+        margin: 1rem 0;
+    }
+    .control-panel {
+        background: rgba(255,255,255,0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="page-header">
+    <h2>🎨 3D Network Topology Visualizer</h2>
+    <p>Interactive 3D visualization of HPC interconnects</p>
+</div>
+
+<div class="control-panel">
+    <button onclick="toggleRotation()" class="btn btn-primary">🔄 Toggle Rotation</button>
+    <button onclick="resetView()" class="btn btn-primary">🎯 Reset View</button>
+    <select id="topology3d" onchange="changeTopology()">
+        <option value="fat_tree">🌳 Fat Tree</option>
+        <option value="dragonfly">🐉 Dragonfly</option>
+        <option value="torus">🔄 3D Torus</option>
+        <option value="hypercube">📐 Hypercube</option>
+    </select>
+</div>
+
+<div id="canvas3d"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+    let scene, camera, renderer, controls, nodes = [], links = [];
+    let rotating = true;
+    
+    function init3D() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        scene.fog = new THREE.FogExp2(0x1a1a2e, 0.0005);
+        
+        camera = new THREE.PerspectiveCamera(45, document.getElementById('canvas3d').clientWidth / 600, 0.1, 1000);
+        camera.position.set(15, 15, 15);
+        camera.lookAt(0, 0, 0);
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(document.getElementById('canvas3d').clientWidth, 600);
+        document.getElementById('canvas3d').appendChild(renderer.domElement);
+        
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+        
+        // Add stars background
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 1000;
+        const starPositions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPositions[i*3] = (Math.random() - 0.5) * 2000;
+            starPositions[i*3+1] = (Math.random() - 0.5) * 2000;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 1000 - 500;
+        }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+        
+        generateFatTree();
+        animate();
+    }
+    
+    function generateFatTree() {
+        // Clear existing
+        nodes.forEach(node => scene.remove(node));
+        links.forEach(link => scene.remove(link));
+        nodes = [];
+        links = [];
+        
+        const levels = 3;
+        const radia = [8, 5, 2];
+        const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1];
+        
+        for (let level = 0; level < levels; level++) {
+            const nodeCount = Math.pow(4, level);
+            for (let i = 0; i < nodeCount; i++) {
+                const angle = (i / nodeCount) * Math.PI * 2;
+                const x = Math.cos(angle) * radia[level];
+                const z = Math.sin(angle) * radia[level];
+                const y = (level - 1) * 3;
+                
+                const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+                const material = new THREE.MeshStandardMaterial({ color: colors[level], emissive: 0x222222 });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(x, y, z);
+                sphere.userData = { level: level, id: i };
+                scene.add(sphere);
+                nodes.push(sphere);
+                
+                // Add connections to lower level
+                if (level > 0) {
+                    const parentIdx = Math.floor(i / 4);
+                    if (nodes[parentIdx + (level-1) * Math.pow(4, level-1)]) {
+                        const parentNode = nodes[parentIdx + (level-1) * Math.pow(4, level-1)];
+                        const lineGeometry = new THREE.BufferGeometry();
+                        const vertices = new Float32Array([
+                            x, y, z,
+                            parentNode.position.x, parentNode.position.y, parentNode.position.z
+                        ]);
+                        lineGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
+                        const line = new THREE.Line(lineGeometry, lineMaterial);
+                        scene.add(line);
+                        links.push(line);
+                    }
+                }
+            }
+        }
+        
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+    }
+    
+    function generateDragonfly() {
+        nodes.forEach(node => scene.remove(node));
+        links.forEach(link => scene.remove(link));
+        nodes = [];
+        links = [];
+        
+        const groups = 5;
+        const nodesPerGroup = 8;
+        
+        for (let g = 0; g < groups; g++) {
+            const groupAngle = (g / groups) * Math.PI * 2;
+            const groupRadius = 8;
+            const groupX = Math.cos(groupAngle) * groupRadius;
+            const groupZ = Math.sin(groupAngle) * groupRadius;
+            
+            for (let n = 0; n < nodesPerGroup; n++) {
+                const nodeAngle = (n / nodesPerGroup) * Math.PI * 2;
+                const nodeRadius = 2;
+                const x = groupX + Math.cos(nodeAngle) * nodeRadius;
+                const z = groupZ + Math.sin(nodeAngle) * nodeRadius;
+                const y = Math.sin(nodeAngle) * 1.5;
+                
+                const geometry = new THREE.SphereGeometry(0.25, 32, 32);
+                const material = new THREE.MeshStandardMaterial({ color: 0x00b894 });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(x, y, z);
+                scene.add(sphere);
+                nodes.push(sphere);
+            }
+        }
+    }
+    
+    function changeTopology() {
+        const topology = document.getElementById('topology3d').value;
+        if (topology === 'fat_tree') generateFatTree();
+        else if (topology === 'dragonfly') generateDragonfly();
+    }
+    
+    function toggleRotation() {
+        controls.autoRotate = !controls.autoRotate;
+    }
+    
+    function resetView() {
+        camera.position.set(15, 15, 15);
+        controls.target.set(0, 0, 0);
+        controls.update();
+    }
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    
+    window.addEventListener('resize', () => {
+        const width = document.getElementById('canvas3d').clientWidth;
+        camera.aspect = width / 600;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, 600);
+    });
+    
+    init3D();
+</script>
+{% endblock %}

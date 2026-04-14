@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .repro-card {
+        background: rgba(255,255,255,0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    
+    .badge-gold { background: #FFD700; color: #333; }
+    .badge-silver { background: #C0C0C0; color: #333; }
+    .badge-bronze { background: #CD7F32; color: #fff; }
+    
+    .doi-badge {
+        font-family: monospace;
+        background: #0066cc;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .experiment-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .experiment-item {
+        background: rgba(0,0,0,0.3);
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .experiment-item:hover {
+        background: rgba(0,0,0,0.5);
+        transform: translateX(5px);
+    }
+    
+    .validation-pass {
+        color: #00b894;
+        font-weight: bold;
+    }
+    
+    .validation-fail {
+        color: #d63031;
+        font-weight: bold;
+    }
+    
+    .seed-info {
+        font-family: monospace;
+        background: rgba(0,0,0,0.5);
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="page-header">
+    <h2>🔬 Reproducibility Center</h2>
+    <p>FAIR-compliant experiment tracking and validation</p>
+</div>
+
+<div class="repro-card">
+    <h3>📊 Experiment Management</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+            <h4>Start New Experiment</h4>
+            <input type="text" id="expName" placeholder="Experiment name" style="width: 100%; margin-bottom: 0.5rem;">
+            <textarea id="expParams" placeholder='{"nodes": 8, "algorithm": "FIFO", "duration": 3600}' style="width: 100%; height: 100px; margin-bottom: 0.5rem;"></textarea>
+            <button onclick="startExperiment()" class="btn btn-primary">▶ Start Experiment</button>
+        </div>
+        <div>
+            <h4>Reproduce Experiment</h4>
+            <select id="expToReproduce" style="width: 100%; margin-bottom: 0.5rem;">
+                <option value="">Select experiment...</option>
+            </select>
+            <button onclick="reproduceExperiment()" class="btn btn-success">🔁 Reproduce</button>
+            <button onclick="compareExperiments()" class="btn btn-primary">📊 Compare</button>
+        </div>
+    </div>
+</div>
+
+<div class="repro-card">
+    <h3>🎖️ ACM Artifact Badges</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div><span class="badge badge-gold">🏅 Artifacts Available</span> - Code and data available</div>
+        <div><span class="badge badge-gold">🔧 Artifacts Evaluated (Functional)</span> - Complete working system</div>
+        <div><span class="badge badge-gold">📊 Artifacts Evaluated (Reusable)</span> - Reusable for research</div>
+        <div><span class="badge badge-silver">🔬 Results Reproduced</span> - Independently verified</div>
+        <div><span class="badge badge-bronze">📈 Results Replicated</span> - Multiple confirmations</div>
+    </div>
+</div>
+
+<div class="repro-card">
+    <h3>🔬 Validation Suite</h3>
+    <div id="validationResults">
+        <button onclick="runValidation()" class="btn btn-primary">▶ Run Validation Tests</button>
+        <div id="validationOutput" style="margin-top: 1rem;"></div>
+    </div>
+</div>
+
+<div class="repro-card">
+    <h3>📦 Export Options</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button onclick="exportDocker()" class="btn btn-primary">🐳 Export Dockerfile</button>
+        <button onclick="exportCFF()" class="btn btn-primary">📄 Export CITATION.cff</button>
+        <button onclick="exportRO()" class="btn btn-primary">📦 Export RO-Crate</button>
+        <button onclick="generateDOI()" class="btn btn-primary">🌐 Generate DOI</button>
+    </div>
+    <div id="exportOutput" style="margin-top: 1rem;"></div>
+</div>
+
+<div class="repro-card">
+    <h3>📋 Recent Experiments</h3>
+    <div id="experimentList" class="experiment-list">
+        <div class="experiment-item">Loading experiments...</div>
+    </div>
+</div>
+
+<div class="repro-card">
+    <h3>🔐 Reproducibility Report</h3>
+    <div id="reproReport">
+        <div class="seed-info">
+            <strong>Random Seed:</strong> <span id="currentSeed">Not set</span><br>
+            <strong>Python Version:</strong> <span id="pythonVersion">-</span><br>
+            <strong>Deterministic:</strong> <span id="deterministic">-</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentExperiment = null;
+    
+    async function apiCall(endpoint, method='GET', data=null) {
+        const options = {
+            method: method,
+            headers: {'Content-Type': 'application/json'}
+        };
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        const response = await fetch(endpoint, options);
+        return await response.json();
+    }
+    
+    async function startExperiment() {
+        const name = document.getElementById('expName').value;
+        const paramsText = document.getElementById('expParams').value;
+        let params = {};
+        try {
+            params = JSON.parse(paramsText);
+        } catch(e) {
+            params = { nodes: 8, algorithm: 'FIFO' };
+        }
+        
+        const result = await apiCall('/api/experiment/start', 'POST', {
+            name: name,
+            parameters: params
+        });
+        
+        currentExperiment = result.experiment_id;
+        alert(`Experiment started: ${result.experiment_id}\nSeed: ${result.random_seed}`);
+        loadExperiments();
+    }
+    
+    async function reproduceExperiment() {
+        const expId = document.getElementById('expToReproduce').value;
+        if (!expId) {
+            alert('Please select an experiment');
+            return;
+        }
+        
+        const result = await apiCall(`/api/experiment/reproduce/${expId}`, 'GET');
+        
+        document.getElementById('reproReport').innerHTML += `
+            <div class="seed-info" style="margin-top: 1rem; background: #00b894;">
+                <strong>✅ Reproduced:</strong> ${expId}<br>
+                <strong>Original Seed:</strong> ${result.random_seed}<br>
+                <strong>Verification Hash:</strong> ${result.verification_hash}
+            </div>
+        `;
+    }
+    
+    async function compareExperiments() {
+        const expId = document.getElementById('expToReproduce').value;
+        if (!expId) {
+            alert('Please select an experiment');
+            return;
+        }
+        
+        const result = await apiCall(`/api/experiment/compare/${expId}`, 'GET');
+        
+        if (result.identical) {
+            alert('✅ Experiments are identical - perfectly reproducible!');
+        } else {
+            alert(`⚠️ Differences found:\n${result.differences.join('\n')}`);
+        }
+    }
+    
+    async function runValidation() {
+        const result = await apiCall('/api/validation/run', 'POST');
+        
+        const output = document.getElementById('validationOutput');
+        const passRate = (result.passed / result.total_tests * 100).toFixed(1);
+        
+        output.innerHTML = `
+            <div style="margin-top: 1rem;">
+                <strong>Validation Results:</strong><br>
+                <span class="${result.passed === result.total_tests ? 'validation-pass' : 'validation-fail'}">
+                    ${result.passed} / ${result.total_tests} tests passed (${passRate}%)
+                </span>
+                ${result.failed > 0 ? `<div style="margin-top: 0.5rem;"><strong>Failed:</strong><pre>${JSON.stringify(result.failed_details, null, 2)}</pre></div>` : ''}
+            </div>
+        `;
+    }
+    
+    async function exportDocker() {
+        const result = await apiCall('/api/export/docker', 'POST', {
+            experiment_id: currentExperiment || 'latest'
+        });
+        document.getElementById('exportOutput').innerHTML = `
+            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${result.dockerfile}</pre>
+            <button onclick="copyToClipboard(this.previousElementSibling.innerText)" class="btn btn-success">📋 Copy</button>
+        `;
+    }
+    
+    async function exportCFF() {
+        const result = await apiCall('/api/export/cff', 'POST', {
+            experiment_id: currentExperiment || 'latest',
+            authors: ['TransForgeX1 Team']
+        });
+        document.getElementById('exportOutput').innerHTML = `
+            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${result.cff}</pre>
+        `;
+    }
+    
+    async function exportRO() {
+        const result = await apiCall('/api/export/ro-crate', 'POST', {
+            experiment_id: currentExperiment || 'latest'
+        });
+        document.getElementById('exportOutput').innerHTML = `
+            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${JSON.stringify(result.ro_crate, null, 2)}</pre>
+        `;
+    }
+    
+    async function generateDOI() {
+        const result = await apiCall('/api/doi/generate', 'POST', {
+            experiment_id: currentExperiment || 'latest'
+        });
+        document.getElementById('exportOutput').innerHTML = `
+            <div style="margin-top: 1rem; padding: 1rem; background: #0066cc; border-radius: 0.5rem;">
+                <strong>🌐 DOI Generated:</strong><br>
+                <span class="doi-badge">${result.doi}</span><br>
+                <a href="${result.doi_url}" target="_blank">${result.doi_url}</a>
+            </div>
+        `;
+    }
+    
+    async function loadExperiments() {
+        const experiments = await apiCall('/api/experiment/list', 'GET');
+        const select = document.getElementById('expToReproduce');
+        const listDiv = document.getElementById('experimentList');
+        
+        select.innerHTML = '<option value="">Select experiment...</option>';
+        listDiv.innerHTML = '';
+        
+        experiments.forEach(exp => {
+            select.innerHTML += `<option value="${exp.id}">${exp.id}</option>`;
+            
+            const item = document.createElement('div');
+            item.className = 'experiment-item';
+            item.onclick = () => {
+                document.getElementById('expToReproduce').value = exp.id;
+                currentExperiment = exp.id;
+            };
+            item.innerHTML = `
+                <strong>${exp.id}</strong><br>
+                <small>Seed: ${exp.seed} | ${exp.timestamp}</small>
+            `;
+            listDiv.appendChild(item);
+        });
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
+    }
+    
+    // Load system info
+    async function loadSystemInfo() {
+        const info = await apiCall('/api/system/info', 'GET');
+        document.getElementById('currentSeed').innerText = info.random_seed || 'Not set';
+        document.getElementById('pythonVersion').innerText = info.python_version;
+        document.getElementById('deterministic').innerText = info.deterministic ? 'Yes' : 'No';
+    }
+    
+    loadExperiments();
+    loadSystemInfo();
+</script>
+{% endblock %}

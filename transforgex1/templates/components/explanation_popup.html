@@ -1,0 +1,223 @@
+<!-- Reusable Explanation Popup Component -->
+<style>
+    .explanation-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-600);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: all 0.2s;
+    }
+    
+    .explanation-icon:hover {
+        background: var(--primary-500);
+        transform: scale(1.1);
+    }
+    
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .popup-content {
+        background: var(--gray-800);
+        border-radius: var(--radius-xl);
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-2xl);
+        animation: popupSlideIn 0.3s ease;
+    }
+    
+    .popup-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .popup-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-300);
+    }
+    
+    .popup-close {
+        background: none;
+        border: none;
+        color: var(--gray-400);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .popup-close:hover {
+        color: white;
+    }
+    
+    .popup-body {
+        padding: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .popup-body h4 {
+        color: var(--primary-300);
+        margin: 1rem 0 0.5rem 0;
+    }
+    
+    .popup-body h4:first-child {
+        margin-top: 0;
+    }
+    
+    .popup-body p {
+        margin-bottom: 0.75rem;
+        color: var(--gray-300);
+    }
+    
+    .popup-body code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.4rem;
+        border-radius: var(--radius-sm);
+        font-family: monospace;
+        font-size: 0.875rem;
+    }
+    
+    .popup-body pre {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.75rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        font-size: 0.8rem;
+        margin: 0.75rem 0;
+    }
+    
+    @keyframes popupSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .tooltip-content {
+        position: absolute;
+        background: var(--gray-800);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        max-width: 250px;
+        z-index: 1000;
+        pointer-events: none;
+        box-shadow: var(--shadow-lg);
+    }
+</style>
+
+<script>
+    // Global explanation popup manager
+    const ExplanationPopup = {
+        show(title, content) {
+            // Remove existing popup
+            this.hide();
+            
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'popup-overlay';
+            overlay.id = 'explanationPopup';
+            
+            // Create content
+            overlay.innerHTML = `
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <div class="popup-title">📖 ${title}</div>
+                        <button class="popup-close" onclick="ExplanationPopup.hide()">×</button>
+                    </div>
+                    <div class="popup-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            overlay.style.display = 'flex';
+            
+            // Close on escape key
+            document.addEventListener('keydown', this.escapeHandler);
+        },
+        
+        hide() {
+            const popup = document.getElementById('explanationPopup');
+            if (popup) {
+                popup.remove();
+            }
+            document.removeEventListener('keydown', this.escapeHandler);
+        },
+        
+        escapeHandler(e) {
+            if (e.key === 'Escape') {
+                ExplanationPopup.hide();
+            }
+        }
+    };
+    
+    // Tooltip system
+    let currentTooltip = null;
+    
+    function showTooltip(element, text) {
+        hideTooltip();
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-content';
+        tooltip.innerHTML = text;
+        
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width / 2 - 125}px`;
+        tooltip.style.top = `${rect.bottom + 5}px`;
+        
+        document.body.appendChild(tooltip);
+        currentTooltip = tooltip;
+    }
+    
+    function hideTooltip() {
+        if (currentTooltip) {
+            currentTooltip.remove();
+            currentTooltip = null;
+        }
+    }
+    
+    // Add explanation icons to elements
+    function addExplanation(elementId, title, content) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const icon = document.createElement('span');
+            icon.className = 'explanation-icon';
+            icon.innerHTML = '?';
+            icon.onclick = (e) => {
+                e.stopPropagation();
+                ExplanationPopup.show(title, content);
+            };
+            element.parentElement?.insertBefore(icon, element.nextSibling);
+        }
+    }
+</script>

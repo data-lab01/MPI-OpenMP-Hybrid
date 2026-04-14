@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>TransForgeX1 - Professional HPC Simulation Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/professional.css') }}">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    {% include 'components/explanation_popup.html' %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span style="margin-right: 0.5rem;">🔧</span>
+            TransForgeX1
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link" data-tooltip="Main dashboard with system overview">🏠 Dashboard</a>
+            <a href="/scheduler" class="nav-link" data-tooltip="Slurm workload manager simulation">⚙️ Scheduler</a>
+            <a href="/network" class="nav-link" data-tooltip="Network topology and routing simulation">🌐 Network</a>
+            <a href="/algorithms" class="nav-link" data-tooltip="Parallel algorithms and scaling laws">🧮 Algorithms</a>
+            <a href="/gpu" class="nav-link" data-tooltip="GPU performance modeling">🎮 GPU</a>
+            <a href="/parallel-programming" class="nav-link" data-tooltip="MPI and OpenMP simulation">🔄 MPI/OpenMP</a>
+            <a href="/reproducibility" class="nav-link" data-tooltip="FAIR experiment tracking">🔬 Reproducibility</a>
+            <a href="/validation" class="nav-link" data-tooltip="Validation against real systems">✅ Validation</a>
+            <a href="/european-dashboard" class="nav-link" data-tooltip="EuroHPC compliance and standards">🇪🇺 EU Standards</a>
+        </div>
+    </nav>
+    
+    <main class="container fade-in">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer for all pages -->
+    <footer style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(128, 128, 128, 0.2); text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 1rem 2rem;">
+            <div style="color: var(--gray-500); font-size: 0.75rem;">
+                © 2026 TransForgeX1. All Rights Reserved.
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="color: var(--primary-300); font-size: 0.75rem;">👨‍💻 Robert Bakyayita</span>
+                <span style="color: var(--gray-500); font-size: 0.7rem;">| AQiS</span>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" onclick="showAboutFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">About</a>
+                <a href="#" onclick="showLicenseFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">License</a>
+                <a href="#" onclick="showContactFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">Contact</a>
+                <button id="themeToggleBtn" class="btn-outline" style="background: none; border: none; cursor: pointer; font-size: 0.7rem; color: var(--gray-500);">🎨 Toggle Theme</button>
+            </div>
+        </div>
+        <div style="font-size: 0.65rem; color: var(--gray-600); padding-bottom: 1rem;">
+            EuroHPC JU Compliant | PRACE Benchmark Ready | FAIR Data Principles
+        </div>
+    </footer>
+    
+    <div id="toastContainer" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 2000;"></div>
+    
+    <script>
+        // Theme management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('transforgex1_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
+        }
+        
+        function toggleTheme() {
+            if (document.body.classList.contains('light-theme')) {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('transforgex1_theme', 'dark');
+                showToast('🌙 Dark mode enabled', 'success');
+            } else {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('transforgex1_theme', 'light');
+                showToast('☀️ Light mode enabled', 'success');
+            }
+        }
+        
+        // Professional toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Active navigation highlighting
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+        
+        // API call helper with error handling
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = { method: method, headers: { 'Content-Type': 'application/json' } };
+                if (data) options.body = JSON.stringify(data);
+                const response = await fetch(endpoint, options);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                showToast('Request failed: ' + error.message, 'error');
+                throw error;
+            }
+        }
+        
+        function formatDuration(seconds) {
+            if (seconds < 60) return `${seconds.toFixed(0)}s`;
+            if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`;
+            return `${(seconds / 3600).toFixed(1)}h`;
+        }
+        
+        // Footer functions
+        function showAboutFooter() {
+            if (typeof ExplanationPopup !== 'undefined') {
+                ExplanationPopup.show('About TransForgeX1', '<h4> TransForgeX1 HPC Simulator</h4><p><strong>Version:</strong> 2.0.0</p><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Organization:</strong> AQiS</p><p>© 2026 All Rights Reserved</p>');
+            } else {
+                alert('About: TransForgeX1 HPC Simulator v2.0.0\nDeveloper: Robert Bakyayita\nOrganization: AQiS');
+            }
+        }
+        
+        function showLicenseFooter() {
+            if (typeof ExplanationPopup !== 'undefined') {
+                ExplanationPopup.show('License', '<h4>📜 MIT License</h4><p>Copyright © 2026 Robert Bakyayita (AQiS)</p><p>Free to use for educational and research purposes.</p>');
+            } else {
+                alert('MIT License - Free for educational and research purposes');
+            }
+        }
+        
+        function showContactFooter() {
+            if (typeof ExplanationPopup !== 'undefined') {
+                ExplanationPopup.show('Contact', '<h4>📧 Contact</h4><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Email:</strong> info@aqis.ai</p>');
+            } else {
+                alert('Contact: info@aqis.ai');
+            }
+        }
+        
+        // Initialize theme on page load
+        initTheme();
+        
+        // Add theme toggle button listener
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', toggleTheme);
+        }
+    </script>
+    
+    <style>
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        [data-tooltip] {
+            cursor: help;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

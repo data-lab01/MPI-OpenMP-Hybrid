@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .parallel-header {
+        margin-bottom: 2rem;
+    }
+    
+    .model-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .model-tab {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        cursor: pointer;
+        color: var(--gray-400);
+        transition: all 0.3s;
+        border-radius: var(--radius-md);
+    }
+    
+    .tab-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .tab-btn.active {
+        background: var(--primary-600);
+        color: white;
+    }
+    
+    .code-block {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+    
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .param-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .param-group label {
+        min-width: 180px;
+    }
+    
+    .rank {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        margin: 2px;
+        border-radius: 4px;
+        text-align: center;
+        line-height: 30px;
+        font-size: 12px;
+        font-weight: bold;
+        background: var(--primary-600);
+    }
+    
+    .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-600);
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 8px;
+    }
+    
+    .help-icon:hover {
+        background: var(--primary-500);
+    }
+</style>
+
+<div class="parallel-header">
+    <h2>🔄 Parallel Programming Simulator</h2>
+    <p style="color: var(--gray-400);">MPI + OpenMP Hybrid Programming Model Simulation</p>
+</div>
+
+<div class="model-tab">
+    <button class="tab-btn active" onclick="switchTab('mpi')">
+        📡 MPI Simulation
+        <span class="help-icon" onclick="event.stopPropagation(); showMPIHelp()">?</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('openmp')">
+        🔄 OpenMP Simulation
+        <span class="help-icon" onclick="event.stopPropagation(); showOpenMPHelp()">?</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('hybrid')">
+        ⚡ Hybrid MPI+OpenMP
+        <span class="help-icon" onclick="event.stopPropagation(); showHybridHelp()">?</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('comparison')">
+        📊 Model Comparison
+        <span class="help-icon" onclick="event.stopPropagation(); showComparisonHelp()">?</span>
+    </button>
+</div>
+
+<!-- MPI Tab -->
+<div id="mpiTab" class="model-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>📡 MPI Communication Simulation</h3>
+        <span class="help-icon" onclick="showMPIDetails()">📖</span>
+    </div>
+    <p style="margin-bottom: 1rem;">Message Passing Interface - Distributed Memory Parallelism</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div>
+            <div class="param-group">
+                <label>Number of MPI Ranks</label>
+                <input type="range" id="mpiRanks" min="2" max="128" value="16" class="form-input" style="flex: 1;">
+                <span id="mpiRanksVal">16</span>
+                <span class="help-icon" onclick="showRankHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Message Size (MB)</label>
+                <input type="range" id="msgSize" min="0.1" max="100" value="10" step="0.1" class="form-input" style="flex: 1;">
+                <span id="msgSizeVal">10</span> MB
+                <span class="help-icon" onclick="showMessageSizeHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Operation Type</label>
+                <select id="mpiOp" class="form-select" style="flex: 1;">
+                    <option value="point_to_point">Point-to-Point (Send/Recv)</option>
+                    <option value="broadcast">MPI_Bcast (Broadcast)</option>
+                    <option value="reduce">MPI_Reduce</option>
+                    <option value="alltoall">MPI_Alltoall</option>
+                    <option value="barrier">MPI_Barrier</option>
+                    <option value="allreduce">MPI_Allreduce</option>
+                </select>
+                <span class="help-icon" onclick="showOperationHelp()">?</span>
+            </div>
+            <button onclick="runMPI()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">▶ Run MPI Simulation</button>
+        </div>
+        <div id="mpiResults">
+            <div class="metric-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="mpiTime">-</div>
+                    <div class="stat-label">Time (μs)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mpiBandwidth">-</div>
+                    <div class="stat-label">Bandwidth (MB/s)</div>
+                </div>
+            </div>
+            <div id="mpiDetails" class="comm-visualization"></div>
+        </div>
+    </div>
+    
+    <div class="code-block">
+        <strong>📖 MPI Code Example:</strong>
+        <pre style="margin-top: 0.5rem;">
+// MPI_Broadcast - sends data from root to all processes
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+double data[1000];
+if (rank == 0) {
+    for (int i = 0; i < 1000; i++) data[i] = i;  // Root initializes
+}
+// All processes receive the data
+MPI_Bcast(data, 1000, MPI_DOUBLE, 0, MPI_COMM_WORLD);</pre>
+    </div>
+</div>
+
+<!-- OpenMP Tab -->
+<div id="openmpTab" class="model-card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>🔄 OpenMP Simulation</h3>
+        <span class="help-icon" onclick="showOpenMPDetails()">📖</span>
+    </div>
+    <p style="margin-bottom: 1rem;">Shared Memory Parallelism - Thread-based Programming</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div>
+            <div class="param-group">
+                <label>Number of Threads</label>
+                <input type="range" id="ompThreads" min="1" max="64" value="8" class="form-input" style="flex: 1;">
+                <span id="ompThreadsVal">8</span>
+                <span class="help-icon" onclick="showThreadHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Workload (GFLOPS)</label>
+                <input type="range" id="workload" min="10" max="1000" value="100" class="form-input" style="flex: 1;">
+                <span id="workloadVal">100</span> GFLOPS
+                <span class="help-icon" onclick="showWorkloadHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Schedule Type</label>
+                <select id="scheduleType" class="form-select" style="flex: 1;">
+                    <option value="static">Static Schedule</option>
+                    <option value="dynamic">Dynamic Schedule</option>
+                    <option value="guided">Guided Schedule</option>
+                    <option value="auto">Auto Schedule</option>
+                </select>
+                <span class="help-icon" onclick="showScheduleHelp()">?</span>
+            </div>
+            <button onclick="runOpenMP()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">▶ Run OpenMP Simulation</button>
+        </div>
+        <div id="ompResults">
+            <div class="metric-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="speedup">-</div>
+                    <div class="stat-label">Speedup</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="efficiency">-</div>
+                    <div class="stat-label">Efficiency (%)</div>
+                </div>
+            </div>
+            <div id="ompDetails" class="comm-visualization"></div>
+        </div>
+    </div>
+    
+    <div class="code-block">
+        <strong>📖 OpenMP Code Example:</strong>
+        <pre style="margin-top: 0.5rem;">
+#pragma omp parallel for num_threads(8) schedule(static)
+for (int i = 0; i < N; i++) {
+    // Loop iterations are distributed statically
+    result[i] = compute(a[i], b[i]);
+}
+
+#pragma omp parallel sections
+{
+    #pragma omp section
+    { task1(); }  // Thread 1 executes
+    #pragma omp section
+    { task2(); }  // Thread 2 executes
+}</pre>
+    </div>
+</div>
+
+<!-- Hybrid Tab -->
+<div id="hybridTab" class="model-card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>⚡ Hybrid MPI+OpenMP Simulation</h3>
+        <span class="help-icon" onclick="showHybridDetails()">📖</span>
+    </div>
+    <p style="margin-bottom: 1rem;">Best of both worlds - Distributed + Shared Memory Parallelism</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div>
+            <div class="param-group">
+                <label>System Size</label>
+                <select id="systemSize" class="form-select" style="flex: 1;">
+                    <option value="small">Small (4 nodes, 64 cores)</option>
+                    <option value="medium">Medium (16 nodes, 512 cores)</option>
+                    <option value="large">Large (64 nodes, 2048 cores)</option>
+                    <option value="exascale">Exascale (1024 nodes, 128k cores)</option>
+                </select>
+                <span class="help-icon" onclick="showSystemSizeHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Workload Type</label>
+                <select id="workloadType" class="form-select" style="flex: 1;">
+                    <option value="computation_intensive">Computation Intensive</option>
+                    <option value="communication_intensive">Communication Intensive</option>
+                    <option value="balanced">Balanced</option>
+                </select>
+                <span class="help-icon" onclick="showWorkloadTypeHelp()">?</span>
+            </div>
+            <button onclick="runHybrid()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">▶ Run Hybrid Simulation</button>
+        </div>
+        <div id="hybridResults">
+            <div class="metric-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="hybridSpeedup">-</div>
+                    <div class="stat-label">Speedup</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="hybridEfficiency">-</div>
+                    <div class="stat-label">Parallel Efficiency</div>
+                </div>
+            </div>
+            <div id="hybridDetails"></div>
+        </div>
+    </div>
+    
+    <div class="code-block">
+        <strong>📖 Hybrid MPI+OpenMP Code Example:</strong>
+        <pre style="margin-top: 0.5rem;">
+// Initialize MPI
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+// Set OpenMP threads per MPI rank
+omp_set_num_threads(4);
+
+#pragma omp parallel for
+for (int i = 0; i < local_n; i++) {
+    local_data[i] = compute(i);  // Each rank computes its portion
+}
+
+// MPI communication across nodes
+MPI_Allreduce(local_data, global_data, local_n, 
+              MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);</pre>
+    </div>
+</div>
+
+<!-- Comparison Tab -->
+<div id="comparisonTab" class="model-card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>📊 Parallel Model Comparison</h3>
+        <span class="help-icon" onclick="showComparisonDetails()">📖</span>
+    </div>
+    <p style="margin-bottom: 1rem;">Compare Pure MPI, Pure OpenMP, and Hybrid approaches</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div>
+            <div class="param-group">
+                <label>Total Cores</label>
+                <input type="range" id="totalCores" min="4" max="1024" value="128" class="form-input" style="flex: 1;">
+                <span id="totalCoresVal">128</span>
+                <span class="help-icon" onclick="showCoresHelp()">?</span>
+            </div>
+            <div class="param-group">
+                <label>Workload (GFLOPS)</label>
+                <input type="range" id="compWorkload" min="100" max="10000" value="1000" class="form-input" style="flex: 1;">
+                <span id="compWorkloadVal">1000</span> GFLOPS
+                <span class="help-icon" onclick="showComparisonWorkloadHelp()">?</span>
+            </div>
+            <button onclick="runComparison()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">▶ Compare Models</button>
+        </div>
+        <div id="comparisonResults"></div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        document.getElementById('mpiTab').style.display = 'none';
+        document.getElementById('openmpTab').style.display = 'none';
+        document.getElementById('hybridTab').style.display = 'none';
+        document.getElementById('comparisonTab').style.display = 'none';
+        document.getElementById(`${tab}Tab`).style.display = 'block';
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+    
+    // Range display updates
+    document.getElementById('mpiRanks').oninput = () => {
+        document.getElementById('mpiRanksVal').innerText = document.getElementById('mpiRanks').value;
+    };
+    document.getElementById('msgSize').oninput = () => {
+        document.getElementById('msgSizeVal').innerText = document.getElementById('msgSize').value;
+    };
+    document.getElementById('ompThreads').oninput = () => {
+        document.getElementById('ompThreadsVal').innerText = document.getElementById('ompThreads').value;
+    };
+    document.getElementById('workload').oninput = () => {
+        document.getElementById('workloadVal').innerText = document.getElementById('workload').value;
+    };
+    document.getElementById('totalCores').oninput = () => {
+        document.getElementById('totalCoresVal').innerText = document.getElementById('totalCores').value;
+    };
+    document.getElementById('compWorkload').oninput = () => {
+        document.getElementById('compWorkloadVal').innerText = document.getElementById('compWorkload').value;
+    };
+    
+    // Explanation popup functions
+    function showMPIHelp() {
+        ExplanationPopup.show('What is MPI?', `
+            <h4>📡 Message Passing Interface (MPI)</h4>
+            <p>MPI is a standardized and portable message-passing standard designed for parallel computing on distributed memory systems.</p>
+            <h4>Key Concepts:</h4>
+            <p><strong>Ranks:</strong> Each process has a unique identifier (rank 0, 1, 2, ...)</p>
+            <p><strong>Communicators:</strong> Groups of processes that can communicate with each other</p>
+            <p><strong>Collective Operations:</strong> Operations involving all processes (Bcast, Reduce, etc.)</p>
+            <h4>Use Cases:</h4>
+            <p>Large-scale simulations on supercomputers, weather forecasting, CFD, molecular dynamics</p>
+        `);
+    }
+    
+    function showOpenMPHelp() {
+        ExplanationPopup.show('What is OpenMP?', `
+            <h4>🔄 Open Multi-Processing (OpenMP)</h4>
+            <p>OpenMP is an API for shared-memory parallel programming in C/C++ and Fortran.</p>
+            <h4>Key Concepts:</h4>
+            <p><strong>Threads:</strong> Lightweight processes sharing the same memory space</p>
+            <p><strong>Parallel Regions:</strong> Blocks of code executed by multiple threads</p>
+            <p><strong>Work Sharing:</strong> Distributing work among threads (loops, sections)</p>
+            <h4>Use Cases:</h4>
+            <p>Multi-core processors, shared memory systems, smaller-scale parallelism</p>
+        `);
+    }
+    
+    function showHybridHelp() {
+        ExplanationPopup.show('Hybrid MPI+OpenMP', `
+            <h4>⚡ Hybrid Parallel Programming</h4>
+            <p>Combines MPI for inter-node communication and OpenMP for intra-node parallelism.</p>
+            <h4>Benefits:</h4>
+            <p><strong>Scalability:</strong> Reduces MPI communication overhead</p>
+            <p><strong>Memory Efficiency:</strong> Shared memory within nodes</p>
+            <p><strong>Load Balancing:</strong> Better granularity control</p>
+            <h4>Modern HPC:</h4>
+            <p>Most modern supercomputers use hybrid programming for optimal performance on clusters with multi-core nodes.</p>
+        `);
+    }
+    
+    function showRankHelp() {
+        ExplanationPopup.show('MPI Ranks Explained', `
+            <h4>🎯 What are MPI Ranks?</h4>
+            <p>Each MPI rank represents an independent process with its own memory space.</p>
+            <h4>Characteristics:</h4>
+            <p>• Ranks communicate via messages (send/receive)</p>
+            <p>• No shared memory between ranks</p>
+            <p>• Each rank has a unique identifier (0 to P-1)</p>
+            <h4>Example:</h4>
+            <p>With 16 ranks, you have 16 independent processes that can run on different nodes or cores.</p>
+        `);
+    }
+    
+    function showMessageSizeHelp() {
+        ExplanationPopup.show('Message Size Impact', `
+            <h4>📦 Message Size in MPI</h4>
+            <p>The amount of data transferred between MPI processes.</p>
+            <h4>Performance Impact:</h4>
+            <p><strong>Small messages (KB):</strong> Latency-dominated communication</p>
+            <p><strong>Large messages (MB):</strong> Bandwidth-dominated communication</p>
+            <h4>Formula:</h4>
+            <p>Communication Time = Latency + (Message Size / Bandwidth)</p>
+            <p>For small messages, latency is the bottleneck. For large messages, bandwidth matters more.</p>
+        `);
+    }
+    
+    function showOperationHelp() {
+        ExplanationPopup.show('MPI Collective Operations', `
+            <h4>📡 Collective Operations</h4>
+            <p><strong>MPI_Bcast:</strong> One process sends same data to all others</p>
+            <p><strong>MPI_Reduce:</strong> Combines values from all processes (sum, max, etc.)</p>
+            <p><strong>MPI_Alltoall:</strong> Every process sends data to every other process</p>
+            <p><strong>MPI_Barrier:</strong> Synchronizes all processes</p>
+            <p><strong>MPI_Allreduce:</strong> Reduce + Broadcast combined</p>
+        `);
+    }
+    
+    function showThreadHelp() {
+        ExplanationPopup.show('OpenMP Threads', `
+            <h4>🧵 Understanding OpenMP Threads</h4>
+            <p>Threads are lightweight execution units sharing the same memory space.</p>
+            <h4>Key Points:</h4>
+            <p>• Multiple threads run simultaneously on different CPU cores</p>
+            <p>• Threads share data (no need for explicit communication)</p>
+            <p>• Must handle race conditions with synchronization</p>
+            <h4>Optimal Thread Count:</h4>
+            <p>Usually equal to number of CPU cores for compute-intensive workloads.</p>
+        `);
+    }
+    
+    function showScheduleHelp() {
+        ExplanationPopup.show('OpenMP Scheduling Policies', `
+            <h4>📋 Loop Scheduling in OpenMP</h4>
+            <p><strong>Static:</strong> Iterations divided equally at compile time. Best for regular workloads.</p>
+            <p><strong>Dynamic:</strong> Threads grab iterations at runtime. Best for irregular workloads.</p>
+            <p><strong>Guided:</strong> Starts with large chunks, decreases. Balances overhead and load imbalance.</p>
+            <p><strong>Auto:</strong> Compiler/runtime decides based on the loop structure.</p>
+        `);
+    }
+    
+    function showSystemSizeHelp() {
+        ExplanationPopup.show('HPC System Sizes', `
+            <h4>🏢 HPC System Classifications</h4>
+            <p><strong>Small:</strong> 4 nodes, 64 cores - University department cluster</p>
+            <p><strong>Medium:</strong> 16 nodes, 512 cores - Research group cluster</p>
+            <p><strong>Large:</strong> 64 nodes, 2048 cores - National supercomputer</p>
+            <p><strong>Exascale:</strong> 1024+ nodes, 100k+ cores - Leadership-class system (Frontier, Fugaku)</p>
+        `);
+    }
+    
+    function showWorkloadTypeHelp() {
+        ExplanationPopup.show('Workload Characteristics', `
+            <h4>💻 Workload Types in HPC</h4>
+            <p><strong>Computation Intensive:</strong> CPU-bound (matrix multiplication, simulations)</p>
+            <p><strong>Communication Intensive:</strong> Network-bound (data analytics, graph processing)</p>
+            <p><strong>Balanced:</strong> Mix of computation and communication</p>
+        `);
+    }
+    
+    function showCoresHelp() {
+        ExplanationPopup.show('Core Count and Scaling', `
+            <h4>🎯 Understanding Core Scaling</h4>
+            <p>Adding more cores should ideally make your program run faster.</p>
+            <h4>Ideal vs Reality:</h4>
+            <p><strong>Ideal Scaling:</strong> 2x cores = 2x speedup (100% efficiency)</p>
+            <p><strong>Actual Scaling:</strong> Limited by Amdahl's Law and communication overhead</p>
+            <h4>Diminishing Returns:</h4>
+            <p>Beyond a certain point, adding more cores provides minimal benefit due to overhead.</p>
+        `);
+    }
+    
+    function showMPIDetails() { showMPIHelp(); }
+    function showOpenMPDetails() { showOpenMPHelp(); }
+    function showHybridDetails() { showHybridHelp(); }
+    function showComparisonDetails() { showComparisonHelp(); }
+    function showComparisonHelp() { showCoresHelp(); }
+    function showWorkloadHelp() { showWorkloadTypeHelp(); }
+    function showComparisonWorkloadHelp() { showWorkloadTypeHelp(); }
+    
+    async function runMPI() {
+        const ranks = document.getElementById('mpiRanks').value;
+        const size = document.getElementById('msgSize').value;
+        const op = document.getElementById('mpiOp').value;
+        
+        const result = await apiCall('/api/mpi/simulate', 'POST', {
+            num_ranks: parseInt(ranks),
+            message_size_mb: parseFloat(size),
+            operation: op
+        });
+        
+        document.getElementById('mpiTime').innerHTML = result.time_us || 'N/A';
+        document.getElementById('mpiBandwidth').innerHTML = result.bandwidth_mbps || 'N/A';
+        
+        document.getElementById('mpiDetails').innerHTML = `
+            <strong>Operation:</strong> ${result.operation || op}<br>
+            <strong>Total Data:</strong> ${result.total_data_mb || size} MB<br>
+            <strong>Complexity:</strong> ${result.complexity || 'O(log P)'}<br>
+            ${result.formula ? `<strong>Formula:</strong> ${result.formula}<br>` : ''}
+            <div style="margin-top: 1rem;">
+                <strong>MPI Ranks Visualization:</strong><br>
+                ${Array(parseInt(ranks)).fill().map((_, i) => `<span class="rank">${i}</span>`).join('')}
+            </div>
+        `;
+        
+        showToast('MPI simulation completed', 'success');
+    }
+    
+    async function runOpenMP() {
+        const threads = document.getElementById('ompThreads').value;
+        const workload = document.getElementById('workload').value;
+        const schedule = document.getElementById('scheduleType').value;
+        
+        const result = await apiCall('/api/openmp/simulate', 'POST', {
+            num_threads: parseInt(threads),
+            workload_gflops: parseFloat(workload),
+            schedule_type: schedule
+        });
+        
+        document.getElementById('speedup').innerHTML = `${result.actual_speedup || 0}x`;
+        document.getElementById('efficiency').innerHTML = `${result.efficiency || 0}%`;
+        
+        document.getElementById('ompDetails').innerHTML = `
+            <strong>Ideal Speedup:</strong> ${result.ideal_speedup || 0}x<br>
+            <strong>Overhead:</strong> ${result.overhead_percent || 0}%<br>
+            <strong>Execution Time:</strong> ${result.execution_time_seconds || 0}s<br>
+            <strong>Load Balance:</strong> ${result.load_balance || 'Good'}<br>
+            <strong>Schedule Type:</strong> ${schedule}
+        `;
+        
+        showToast('OpenMP simulation completed', 'success');
+    }
+    
+    async function runHybrid() {
+        const system = document.getElementById('systemSize').value;
+        const workloadType = document.getElementById('workloadType').value;
+        
+        const result = await apiCall('/api/hybrid/simulate', 'POST', {
+            system_config: system,
+            workload_type: workloadType
+        });
+        
+        document.getElementById('hybridSpeedup').innerHTML = `${result.speedup || 0}x`;
+        document.getElementById('hybridEfficiency').innerHTML = `${result.parallel_efficiency || 0}%`;
+        
+        document.getElementById('hybridDetails').innerHTML = `
+            <strong>Configuration:</strong> ${result.total_nodes || 0} nodes, ${result.total_cores || 0} cores<br>
+            <strong>MPI Ranks:</strong> ${result.mpi_ranks || 0}<br>
+            <strong>OpenMP Threads:</strong> ${result.omp_threads_per_rank || 0}<br>
+            <strong>MPI Overhead:</strong> ${result.mpi_overhead || 0}%<br>
+            <strong>OpenMP Overhead:</strong> ${result.omp_overhead || 0}%<br>
+            <strong>Recommendation:</strong> ${result.recommended_balance || 'Good balance'}
+        `;
+        
+        showToast('Hybrid simulation completed', 'success');
+    }
+    
+    async function runComparison() {
+        const cores = document.getElementById('totalCores').value;
+        const workload = document.getElementById('compWorkload').value;
+        
+        const result = await apiCall('/api/parallel/compare', 'POST', {
+            total_cores: parseInt(cores),
+            workload_gflops: parseFloat(workload)
+        });
+        
+        document.getElementById('comparisonResults').innerHTML = `
+            <div class="metric-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${result.pure_mpi?.speedup || 0}x</div>
+                    <div class="stat-label">Pure MPI</div>
+                    <div style="font-size: 0.75rem;">${result.pure_mpi?.description || ''}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${result.pure_openmp?.speedup || 0}x</div>
+                    <div class="stat-label">Pure OpenMP</div>
+                    <div style="font-size: 0.75rem;">${result.pure_openmp?.description || ''}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${result.hybrid?.speedup || 0}x</div>
+                    <div class="stat-label">Hybrid</div>
+                    <div style="font-size: 0.75rem;">${result.hybrid?.description || ''}</div>
+                </div>
+            </div>
+            <div class="comm-visualization" style="margin-top: 1rem;">
+                <strong>🏆 Best Model:</strong> ${(result.best_model || 'hybrid').toUpperCase()}<br>
+                <strong>💡 Recommendation:</strong> ${result.recommendation || 'Use hybrid for best performance'}
+            </div>
+        `;
+        
+        showToast('Comparison completed', 'success');
+    }
+</script>
+{% endblock %}
