@@ -30,7 +30,7 @@ class HPCReportGenerator:
         </head>
         <body>
             <div class="header">
-                <h1>🔧 TransForgeX1 HPC Performance Report</h1>
+                <h1> TransForgeX1 HPC Performance Report</h1>
                 <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             </div>
             

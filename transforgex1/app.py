@@ -347,7 +347,7 @@ def system_info():
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🔧 TransForgeX1 - HPC Simulator")
+    print(" TransForgeX1 - HPC Simulator")
     print("="*60)
     print("\n🌐 Available pages:")
     print("  • Home:              http://127.0.0.1:5000/")
