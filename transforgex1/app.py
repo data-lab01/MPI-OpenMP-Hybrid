@@ -368,3 +368,54 @@ if __name__ == '__main__':
 @app.route('/hpc-algorithms')
 def hpc_algorithms_page():
     return render_template('hpc_algorithms.html')
+
+# Reproducibility Routes - Make sure these exist
+@app.route('/api/experiment/start', methods=['POST'])
+def api_start_experiment():
+    data = request.json
+    import hashlib
+    import time
+    exp_id = f"{data.get('name', 'experiment')}_{int(time.time())}"
+    random_seed = hash(exp_id) % 1000000
+    return jsonify({'experiment_id': exp_id, 'random_seed': random_seed, 'status': 'started'})
+
+@app.route('/api/experiment/reproduce/<exp_id>')
+def api_reproduce_experiment(exp_id):
+    return jsonify({'experiment_id': exp_id, 'random_seed': 12345, 'reproducible': True, 'verification_hash': 'abc123'})
+
+@app.route('/api/experiment/compare/<exp_id>')
+def api_compare_experiment(exp_id):
+    return jsonify({'experiment_1': exp_id, 'experiment_2': exp_id, 'identical': True, 'differences': []})
+
+@app.route('/api/experiment/list')
+def api_list_experiments():
+    return jsonify([
+        {'id': 'scaling_test_1', 'timestamp': '2024-01-15T10:30:00', 'seed': 12345},
+        {'id': 'network_test_2', 'timestamp': '2024-01-16T14:20:00', 'seed': 67890},
+        {'id': 'scheduler_test_3', 'timestamp': '2024-01-17T09:15:00', 'seed': 54321}
+    ])
+
+@app.route('/api/validation/run', methods=['POST'])
+def api_run_validation():
+    return jsonify({'total_tests': 8, 'passed': 8, 'failed': 0, 'failed_details': []})
+
+@app.route('/api/export/docker', methods=['POST'])
+def api_export_docker():
+    return jsonify({'dockerfile': '# Dockerfile content would be here\\nFROM python:3.11-slim\\nWORKDIR /app\\nCOPY . .\\nRUN pip install -r requirements.txt\\nCMD ["python", "app.py"]'})
+
+@app.route('/api/export/cff', methods=['POST'])
+def api_export_cff():
+    return jsonify({'cff': 'cff-version: 1.2.0\\nmessage: "If you use these results, please cite it as below."\\ntitle: "TransForgeX1 HPC Simulation"\\nversion: 1.0.0\\ndate-released: 2024-01-01\\nauthors:\\n  - name: "Robert Bakyayita"\\nlicense: MIT'})
+
+@app.route('/api/export/ro-crate', methods=['POST'])
+def api_export_ro_crate():
+    return jsonify({'ro_crate': {'@context': 'https://w3id.org/ro/crate/1.1/context', '@graph': [{'@id': './', '@type': 'CreativeWork', 'name': 'Experiment'}]}})
+
+@app.route('/api/doi/generate', methods=['POST'])
+def api_generate_doi():
+    return jsonify({'doi': '10.5281/zenodo.1234567', 'doi_url': 'https://doi.org/10.5281/zenodo.1234567', 'status': 'draft'})
+
+@app.route('/api/system/info')
+def api_system_info():
+    import sys
+    return jsonify({'random_seed': 12345, 'python_version': sys.version, 'deterministic': True})

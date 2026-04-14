@@ -161,13 +161,19 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         background: var(--primary-600);
         color: white;
         font-size: 11px;
         cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .algorithm-name .help-icon-small:hover {
+        background: var(--primary-500);
+        transform: scale(1.1);
     }
     
     .algorithm-year {
@@ -362,113 +368,165 @@
     let simulationResults = [];
     let resultsWindowCollapsed = false;
     
-    // Complete algorithms database with CORRECT simulation functions
+    // Complete help content for all algorithms
+    const helpContent = {
+        // Scaling Laws
+        amdahl: { title: "Amdahl's Law (1967)", content: "<h4>📐 Amdahl's Law</h4><p><strong>Formula:</strong> Speedup = 1 / (S + (1-S)/N)</p><p><strong>Where:</strong><br>S = Serial fraction of code<br>N = Number of processors</p><p><strong>Key Insight:</strong> The serial portion limits maximum speedup. Even with infinite cores, speedup is bounded by 1/S.</p><p><strong>Example:</strong> If 10% is serial (S=0.1), max speedup is 10x.</p><p><strong>Application:</strong> Used to estimate parallel performance bounds.</p>" },
+        gustafson: { title: "Gustafson's Law (1988)", content: "<h4>📈 Gustafson's Law</h4><p><strong>Formula:</strong> Speedup = N - S×(N-1)</p><p><strong>Key Insight:</strong> Problem sizes scale with available computing power.</p><p><strong>Example:</strong> Weather simulation can use more cores to increase resolution, not just run faster.</p><p><strong>Application:</strong> More realistic for modern HPC where problem size grows with cores.</p>" },
+        karpflatt: { title: "Karp-Flatt Metric (1990)", content: "<h4>📊 Karp-Flatt Metric</h4><p><strong>Formula:</strong> e = (1/Speedup - 1/N) / (1 - 1/N)</p><p><strong>Purpose:</strong> Measures actual serial fraction including overhead and load imbalance.</p><p><strong>Interpretation:</strong> If e > theoretical serial fraction, overhead is significant.</p>" },
+        little: { title: "Little's Law (1961)", content: "<h4>📊 Little's Law</h4><p><strong>Formula:</strong> L = λ × W</p><p><strong>Where:</strong><br>L = average jobs in system<br>λ = arrival rate<br>W = average wait time</p><p><strong>Application:</strong> Used to analyze job scheduler performance and queue lengths.</p>" },
+        
+        // Scheduling
+        fifo: { title: "FIFO Scheduling", content: "<h4>🔄 First-In-First-Out (FIFO)</h4><p><strong>How it works:</strong> Jobs execute in arrival order.</p><p><strong>Pros:</strong> Simple, fair, no starvation</p><p><strong>Cons:</strong> Convoy effect - short jobs wait behind long jobs</p><p><strong>Used in:</strong> Batch systems, print queues</p>" },
+        sjf: { title: "Shortest Job First", content: "<h4>📊 Shortest Job First (SJF)</h4><p><strong>How it works:</strong> Jobs with shortest execution time run first.</p><p><strong>Optimal:</strong> Minimizes average waiting time.</p><p><strong>Risk:</strong> Long jobs can starve indefinitely.</p>" },
+        priority: { title: "Priority Scheduling", content: "<h4>⭐ Priority Scheduling</h4><p><strong>How it works:</strong> Higher priority jobs execute first.</p><p><strong>Aging:</strong> Gradually increases priority of waiting jobs to prevent starvation.</p><p><strong>Formula:</strong> Priority = f(job_size, wait_time)</p>" },
+        roundrobin: { title: "Round Robin Scheduling", content: "<h4>🔄 Round Robin</h4><p><strong>How it works:</strong> Each job gets a fixed time slice (quantum).</p><p><strong>Pros:</strong> Fair, responsive for interactive systems.</p><p><strong>Trade-off:</strong> Small quantum = more overhead, large quantum = less responsive.</p>" },
+        mlfq: { title: "Multilevel Feedback Queue", content: "<h4>📊 Multilevel Feedback Queue (MLFQ)</h4><p><strong>How it works:</strong> Jobs move between priority queues based on behavior.</p><p><strong>Used in:</strong> Modern operating systems (Windows, Linux, macOS).</p><p><strong>Benefits:</strong> Balances responsiveness and throughput.</p>" },
+        
+        // Network
+        dragonfly: { title: "Dragonfly Topology", content: "<h4>🐉 Dragonfly Network</h4><p><strong>Structure:</strong> Groups of routers connected in a fully-connected graph.</p><p><strong>Routing:</strong> 3 hops: source → local → global → destination.</p><p><strong>Used in:</strong> Cray supercomputers (Frontier, LUMI).</p><p><strong>Properties:</strong> Low diameter (3), high scalability.</p>" },
+        fattree: { title: "Fat-Tree Network", content: "<h4>🌳 Fat Tree Network</h4><p><strong>Properties:</strong> Full bisection bandwidth, O(log N) diameter.</p><p><strong>Used in:</strong> Many HPC clusters and data centers.</p><p><strong>Advantage:</strong> No bandwidth bottlenecks, predictable performance.</p>" },
+        torus: { title: "Torus Network", content: "<h4>🔄 Torus Network</h4><p><strong>Structure:</strong> Nodes arranged in a grid with wrap-around connections.</p><p><strong>Routing:</strong> Dimension-order routing (X, then Y, then Z).</p><p><strong>Property:</strong> Deadlock-free, regular structure.</p><p><strong>Used in:</strong> IBM Blue Gene, Cray XT series.</p>" },
+        
+        // Communication
+        bcast: { title: "MPI_Bcast", content: "<h4>📡 MPI_Bcast (Broadcast)</h4><p><strong>Purpose:</strong> One process sends same data to all others.</p><p><strong>Algorithm:</strong> Binomial tree broadcast.</p><p><strong>Complexity:</strong> O(log P) steps.</p><p><strong>Use case:</strong> Distributing input data, configuration parameters.</p>" },
+        allreduce: { title: "MPI_Allreduce", content: "<h4>📡 MPI_Allreduce</h4><p><strong>Purpose:</strong> Combines values from all processes (sum, max, min, etc.) AND distributes result to all.</p><p><strong>Algorithm:</strong> Recursive doubling.</p><p><strong>Complexity:</strong> O(log P) steps.</p><p><strong>Use case:</strong> Global statistics, gradient averaging in ML.</p>" },
+        alltoall: { title: "MPI_Alltoall", content: "<h4>📡 MPI_Alltoall</h4><p><strong>Purpose:</strong> Every process sends data to every other process.</p><p><strong>Algorithm:</strong> Bruck algorithm for power-of-two processor counts.</p><p><strong>Complexity:</strong> O(log P) steps.</p><p><strong>Use case:</strong> Transpose operations, FFTs.</p>" },
+        
+        // Numerical
+        domaindecomp: { title: "Domain Decomposition", content: "<h4>🧮 Domain Decomposition</h4><p><strong>How it works:</strong> Split physical domain into subdomains, each assigned to a processor.</p><p><strong>Communication:</strong> Processors exchange boundary (halo) data.</p><p><strong>Used in:</strong> CFD, finite element methods, weather models.</p>" },
+        fft: { title: "Fast Fourier Transform", content: "<h4>🧮 Fast Fourier Transform (FFT)</h4><p><strong>Algorithm:</strong> Cooley-Tukey (1965).</p><p><strong>Complexity:</strong> O(N log N) vs O(N²) for DFT.</p><p><strong>Used in:</strong> Signal processing, spectral methods, MRI, image processing.</p>" },
+        cg: { title: "Conjugate Gradient", content: "<h4>🧮 Conjugate Gradient Method</h4><p><strong>Purpose:</strong> Solve Ax = b for symmetric positive definite matrices.</p><p><strong>Complexity:</strong> O(N²) per iteration, converges in at most N steps.</p><p><strong>Used in:</strong> Finite element analysis, optimization, machine learning.</p>" },
+        
+        // Energy
+        pue: { title: "Power Usage Effectiveness (PUE)", content: "<h4>⚡ Power Usage Effectiveness</h4><p><strong>Formula:</strong> PUE = Total Facility Power / IT Equipment Power</p><p><strong>Ideal:</strong> 1.0 (all power to computing).</p><p><strong>EuroHPC target:</strong> < 1.2.</p><p><strong>Good:</strong> < 1.3, <strong>Excellent:</strong> < 1.1.</p>" },
+        carbon: { title: "Carbon Footprint", content: "<h4>🌍 Carbon Footprint Calculator</h4><p><strong>Formula:</strong> CO₂ (kg) = Power (kW) × Hours × Carbon Intensity (g/kWh) / 1000</p><p><strong>EuroHPC:</strong> Requires carbon reporting for all systems.</p><p><strong>Reduction:</strong> Use renewable energy, improve PUE.</p>" },
+        
+        // Performance
+        efficiency: { title: "Parallel Efficiency", content: "<h4>📊 Parallel Efficiency</h4><p><strong>Formula:</strong> Efficiency = Speedup / Processors × 100%</p><p><strong>Interpretation:</strong><br>> 90% = Excellent scaling<br>70-90% = Good scaling<br>50-70% = Moderate scaling<br>< 50% = Poor scaling</p>" },
+        strongscaling: { title: "Strong Scaling", content: "<h4>📊 Strong Scaling</h4><p><strong>Definition:</strong> Problem size fixed, measure speedup with more cores.</p><p><strong>Limitation:</strong> Limited by Amdahl's Law.</p><p><strong>Example:</strong> Same weather simulation runs faster with more cores.</p>" },
+        weakscaling: { title: "Weak Scaling", content: "<h4>📊 Weak Scaling</h4><p><strong>Definition:</strong> Problem size grows with number of cores.</p><p><strong>Goal:</strong> Execution time remains constant.</p><p><strong>Example:</strong> Weather simulation uses more cores to increase resolution, not just run faster.</p>" }
+    };
+    
+    // Complete algorithms database
     const algorithms = {
         scaling: [
-            { name: "Amdahl's Law", year: 1967, formula: "Speedup = 1 / (S + (1-S)/N)", description: "The serial portion of code limits maximum speedup.", tags: ["Speedup Limit", "Theoretical Bound"], complexity: "O(1)",
+            { name: "Amdahl's Law", helpKey: "amdahl", year: 1967, formula: "Speedup = 1 / (S + (1-S)/N)", description: "The serial portion of code limits maximum speedup.", tags: ["Speedup Limit", "Theoretical Bound"], complexity: "O(1)",
               simulate: function(S, N) { return 1 / (S + (1 - S) / N); },
               params: [{ name: "Serial Fraction (S)", id: "amdahl_s", min: 0, max: 0.5, step: 0.01, default: 0.1, suffix: "%", multiplier: 100 },
                        { name: "Number of Cores (N)", id: "amdahl_n", min: 1, max: 1024, step: 1, default: 32, suffix: "" }] },
-            { name: "Gustafson's Law", year: 1988, formula: "Speedup = N - S×(N-1)", description: "Problem size scales with cores.", tags: ["Weak Scaling", "Scaled Speedup"], complexity: "O(1)",
+            { name: "Gustafson's Law", helpKey: "gustafson", year: 1988, formula: "Speedup = N - S×(N-1)", description: "Problem size scales with cores.", tags: ["Weak Scaling", "Scaled Speedup"], complexity: "O(1)",
               simulate: function(S, N) { return N - S * (N - 1); },
               params: [{ name: "Serial Fraction (S)", id: "gustafson_s", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 },
                        { name: "Number of Cores (N)", id: "gustafson_n", min: 1, max: 1024, step: 1, default: 64, suffix: "" }] },
-            { name: "Karp-Flatt Metric", year: 1990, formula: "e = (1/Speedup - 1/N) / (1 - 1/N)", description: "Measures actual serial fraction including overhead.", tags: ["Serial Fraction", "Overhead"], complexity: "O(1)",
+            { name: "Karp-Flatt Metric", helpKey: "karpflatt", year: 1990, formula: "e = (1/Speedup - 1/N) / (1 - 1/N)", description: "Measures actual serial fraction including overhead.", tags: ["Serial Fraction", "Overhead"], complexity: "O(1)",
               simulate: function(speedup, N) { return (1/speedup - 1/N) / (1 - 1/N); },
               params: [{ name: "Measured Speedup", id: "karp_speedup", min: 1, max: 1000, step: 1, default: 15, suffix: "x" },
                        { name: "Number of Cores (N)", id: "karp_n", min: 1, max: 1024, step: 1, default: 32, suffix: "" }] },
-            { name: "Little's Law", year: 1961, formula: "L = λ × W", description: "Relates queue length to arrival rate and waiting time.", tags: ["Queueing Theory", "Scheduling"], complexity: "O(1)",
+            { name: "Little's Law", helpKey: "little", year: 1961, formula: "L = λ × W", description: "Relates queue length to arrival rate and waiting time.", tags: ["Queueing Theory", "Scheduling"], complexity: "O(1)",
               simulate: function(lambda, W) { return lambda * W; },
               params: [{ name: "Arrival Rate (λ)", id: "little_lambda", min: 1, max: 100, step: 1, default: 10, suffix: "jobs/hour" },
                        { name: "Avg Wait Time (W)", id: "little_w", min: 0.1, max: 10, step: 0.1, default: 0.5, suffix: "hours" }] }
         ],
         scheduling: [
-            { name: "FIFO (FCFS)", year: "1960s", formula: "First-In-First-Out", description: "Jobs execute in arrival order.", tags: ["Batch Systems", "Fair"], complexity: "O(1)",
+            { name: "FIFO (FCFS)", helpKey: "fifo", year: "1960s", formula: "First-In-First-Out", description: "Jobs execute in arrival order.", tags: ["Batch Systems", "Fair"], complexity: "O(1)",
               simulate: function(jobCount, longFirst) { let waiting = [], time = 0; for (let i = 0; i < jobCount; i++) { waiting.push(time); time += (longFirst && i === 0) ? 100 : 20; } return { avgWait: waiting.reduce((a,b)=>a+b,0)/jobCount, maxWait: Math.max(...waiting) }; },
               params: [{ name: "Number of Jobs", id: "fifo_jobs", min: 1, max: 20, step: 1, default: 10, suffix: "jobs" },
                        { name: "Long Job First", id: "fifo_long", type: "select", options: ["No", "Yes"], default: "No" }] },
-            { name: "Shortest Job First", year: "1960s", formula: "Minimize average waiting time", description: "Optimal for minimizing average wait time.", tags: ["Optimal", "Starvation Risk"], complexity: "O(n log n)",
+            { name: "Shortest Job First", helpKey: "sjf", year: "1960s", formula: "Minimize average waiting time", description: "Optimal for minimizing average wait time.", tags: ["Optimal", "Starvation Risk"], complexity: "O(n log n)",
               simulate: function(jobCount) { let durations = Array.from({length: jobCount}, () => Math.floor(Math.random() * 90) + 10); let sorted = [...durations].sort((a,b)=>a-b); let time = 0, waits = []; for (let d of sorted) { waits.push(time); time += d; } let fifoWait = durations.reduce((a,b,i)=>a + durations.slice(0,i).reduce((s,x)=>s+x,0),0)/jobCount; let sjfWait = waits.reduce((a,b)=>a+b,0)/jobCount; return { avgWait: sjfWait, improvement: ((fifoWait - sjfWait)/fifoWait*100).toFixed(1) }; },
               params: [{ name: "Number of Jobs", id: "sjf_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" }] },
-            { name: "Priority Scheduling", year: "1970s", formula: "Higher priority first", description: "Jobs with higher priority execute first.", tags: ["Dynamic Priority", "Aging"], complexity: "O(n log n)",
+            { name: "Priority Scheduling", helpKey: "priority", year: "1970s", formula: "Higher priority first", description: "Jobs with higher priority execute first.", tags: ["Dynamic Priority", "Aging"], complexity: "O(n log n)",
               simulate: function(jobCount, useAging) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, priority: Math.floor(Math.random()*10)+1, duration: Math.floor(Math.random()*50)+10})); let time = 0, waits = []; while (jobs.length > 0) { if (useAging === 'Yes') jobs.forEach(j => j.priority++); jobs.sort((a,b) => b.priority - a.priority); let job = jobs.shift(); waits.push(time); time += job.duration; } return { avgWait: waits.reduce((a,b)=>a+b,0)/jobCount, maxWait: Math.max(...waits) }; },
               params: [{ name: "Number of Jobs", id: "prio_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" },
                        { name: "Use Aging", id: "prio_aging", type: "select", options: ["No", "Yes"], default: "Yes" }] },
-            { name: "Round Robin", year: "1970s", formula: "Time Quantum = q", description: "Each job gets a fixed time slice.", tags: ["Time Sharing", "Fair"], complexity: "O(n)",
+            { name: "Round Robin", helpKey: "roundrobin", year: "1970s", formula: "Time Quantum = q", description: "Each job gets a fixed time slice.", tags: ["Time Sharing", "Fair"], complexity: "O(n)",
               simulate: function(jobCount, quantum) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*100)+20})); let time = 0, queue = [...jobs], completions = []; while (queue.length > 0) { let job = queue.shift(); if (job.remaining <= quantum) { time += job.remaining; completions.push(time); } else { time += quantum; job.remaining -= quantum; queue.push(job); } } return { avgCompletion: completions.reduce((a,b)=>a+b,0)/jobCount }; },
               params: [{ name: "Number of Jobs", id: "rr_jobs", min: 2, max: 15, step: 1, default: 8, suffix: "jobs" },
                        { name: "Time Quantum", id: "rr_quantum", min: 10, max: 100, step: 5, default: 30, suffix: "ms" }] },
-            { name: "Multilevel Feedback Queue", year: "1970s", formula: "Multiple priority queues", description: "Jobs move between queues based on behavior.", tags: ["Adaptive", "MLFQ"], complexity: "O(n log n)",
+            { name: "Multilevel Feedback Queue", helpKey: "mlfq", year: "1970s", formula: "Multiple priority queues", description: "Jobs move between queues based on behavior.", tags: ["Adaptive", "MLFQ"], complexity: "O(n log n)",
               simulate: function(jobCount) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*150)+30})); let time = 0; let queues = [[], [], []]; let quantums = [10, 20, 40]; for (let job of jobs) queues[0].push(job); while (queues[0].length > 0 || queues[1].length > 0 || queues[2].length > 0) { for (let q = 0; q < 3; q++) { if (queues[q].length > 0) { let job = queues[q].shift(); let exec = Math.min(job.remaining, quantums[q]); time += exec; job.remaining -= exec; if (job.remaining > 0) { let nextQ = Math.min(q + 1, 2); queues[nextQ].push(job); } break; } } } return { avgCompletion: jobs.reduce((a,b)=>a+time,0)/jobCount }; },
               params: [{ name: "Number of Jobs", id: "mlfq_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" }] }
         ],
         network: [
-            { name: "Dragonfly Routing", year: 2008, formula: "3-hop routing", description: "source → local → global → destination.", tags: ["Cray", "3 Hops"], complexity: "Diameter: 3",
+            { name: "Dragonfly Routing", helpKey: "dragonfly", year: 2008, formula: "3-hop routing", description: "source → local → global → destination.", tags: ["Cray", "3 Hops"], complexity: "Diameter: 3",
               simulate: function(nodes, packets) { return { hops: 3, totalHops: packets * 3, latencyMs: packets * 3 * 0.5 }; },
               params: [{ name: "Number of Nodes", id: "drag_nodes", min: 10, max: 1000, step: 10, default: 100, suffix: "nodes" },
                        { name: "Packets", id: "drag_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
-            { name: "Fat-Tree Routing", year: 1985, formula: "Full bisection bandwidth", description: "No bandwidth bottlenecks.", tags: ["Full Bisection", "Clos"], complexity: "Diameter: O(log N)",
+            { name: "Fat-Tree Routing", helpKey: "fattree", year: 1985, formula: "Full bisection bandwidth", description: "No bandwidth bottlenecks.", tags: ["Full Bisection", "Clos"], complexity: "Diameter: O(log N)",
               simulate: function(nodes, packets) { let hops = Math.ceil(Math.log2(nodes) * 2); return { hops: hops, totalHops: packets * hops, latencyMs: packets * hops * 0.3 }; },
               params: [{ name: "Number of Nodes", id: "fat_nodes", min: 4, max: 1024, step: 4, default: 64, suffix: "nodes" },
                        { name: "Packets", id: "fat_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
-            { name: "Torus Routing", year: "1970s", formula: "Dimension-order routing", description: "Route sequentially through dimensions.", tags: ["Torus", "Deadlock-Free"], complexity: "Diameter: D",
+            { name: "Torus Routing", helpKey: "torus", year: "1970s", formula: "Dimension-order routing", description: "Route sequentially through dimensions.", tags: ["Torus", "Deadlock-Free"], complexity: "Diameter: D",
               simulate: function(dimensions, packets) { let dims = dimensions.split('x').map(Number); let hops = dims.reduce((a,b) => a + Math.floor(b/2), 0); return { hops: hops, totalHops: packets * hops, latencyMs: packets * hops * 0.4 }; },
               params: [{ name: "Dimensions", id: "torus_dims", type: "text", default: "8x8x8" },
                        { name: "Packets", id: "torus_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] }
         ],
         communication: [
-            { name: "MPI_Bcast", year: "1980s", formula: "Tree-based", description: "Broadcasts from root to all.", tags: ["Broadcast", "MPI"], complexity: "O(log P)",
+            { name: "MPI_Bcast", helpKey: "bcast", year: "1980s", formula: "Tree-based", description: "Broadcasts from root to all.", tags: ["Broadcast", "MPI"], complexity: "O(log P)",
               simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (5 + msgSize / 100) }; },
               params: [{ name: "Ranks", id: "bcast_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "bcast_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] },
-            { name: "MPI_Allreduce", year: "1980s", formula: "Recursive Doubling", description: "Combines values from all processes.", tags: ["Allreduce", "MPI"], complexity: "O(log P)",
+            { name: "MPI_Allreduce", helpKey: "allreduce", year: "1980s", formula: "Recursive Doubling", description: "Combines values from all processes.", tags: ["Allreduce", "MPI"], complexity: "O(log P)",
               simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (10 + msgSize / 50) }; },
               params: [{ name: "Ranks", id: "allred_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "allred_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] },
-            { name: "MPI_Alltoall", year: 1997, formula: "Bruck", description: "Every process sends to every other.", tags: ["Alltoall", "MPI"], complexity: "O(log P)",
+            { name: "MPI_Alltoall", helpKey: "alltoall", year: 1997, formula: "Bruck", description: "Every process sends to every other.", tags: ["Alltoall", "MPI"], complexity: "O(log P)",
               simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (8 + msgSize / 25) }; },
               params: [{ name: "Ranks", id: "alltoall_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "alltoall_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] }
         ],
         numerical: [
-            { name: "Domain Decomposition", year: "1980s", formula: "Divide domain", description: "Split domain among processors.", tags: ["CFD", "FEM"], complexity: "O(P)",
+            { name: "Domain Decomposition", helpKey: "domaindecomp", year: "1980s", formula: "Divide domain", description: "Split domain among processors.", tags: ["CFD", "FEM"], complexity: "O(P)",
               simulate: function(processors, gridSize) { return { cellsPerProc: (gridSize * gridSize) / processors, commTimeUs: processors * 100 }; },
               params: [{ name: "Processors", id: "dom_proc", min: 1, max: 256, step: 1, default: 16, suffix: "procs" },
                        { name: "Grid Size", id: "dom_grid", min: 100, max: 10000, step: 100, default: 1000, suffix: "cells" }] },
-            { name: "Fast Fourier Transform", year: 1965, formula: "O(N log N)", description: "Efficient frequency analysis.", tags: ["Spectral"], complexity: "O(N log N)",
+            { name: "Fast Fourier Transform", helpKey: "fft", year: 1965, formula: "O(N log N)", description: "Efficient frequency analysis.", tags: ["Spectral"], complexity: "O(N log N)",
               simulate: function(N) { let dft = N * N; let fft = N * Math.log2(N); return { dftOps: dft, fftOps: Math.round(fft), speedup: (dft/fft).toFixed(0) }; },
               params: [{ name: "N (points)", id: "fft_n", min: 64, max: 65536, step: 64, default: 1024, suffix: "points" }] },
-            { name: "Conjugate Gradient", year: 1952, formula: "Iterative solver", description: "Solves linear systems.", tags: ["Linear Algebra"], complexity: "O(N²)",
+            { name: "Conjugate Gradient", helpKey: "cg", year: 1952, formula: "Iterative solver", description: "Solves linear systems.", tags: ["Linear Algebra"], complexity: "O(N²)",
               simulate: function(N, iter) { return { operations: (N * N * iter).toExponential(2), memoryMB: (N * N * 8 / 1e6).toFixed(2) }; },
               params: [{ name: "Matrix Size", id: "cg_n", min: 100, max: 10000, step: 100, default: 1000 },
                        { name: "Iterations", id: "cg_iter", min: 10, max: 1000, step: 10, default: 100, suffix: "iter" }] }
         ],
         energy: [
-            { name: "Power Usage Effectiveness", year: 2007, formula: "PUE = Total / IT", description: "Data center efficiency. EuroHPC target < 1.2.", tags: ["Green HPC"], complexity: "O(1)",
+            { name: "Power Usage Effectiveness", helpKey: "pue", year: 2007, formula: "PUE = Total / IT", description: "Data center efficiency. EuroHPC target < 1.2.", tags: ["Green HPC"], complexity: "O(1)",
               simulate: function(total, it) { return total / it; },
               params: [{ name: "Total Power (kW)", id: "pue_total", min: 100, max: 10000, step: 10, default: 1200 },
                        { name: "IT Power (kW)", id: "pue_it", min: 100, max: 9000, step: 10, default: 1000 }] },
-            { name: "Carbon Footprint", year: "2000s", formula: "CO₂ = Power × Hours × Intensity", description: "Environmental impact.", tags: ["Environmental"], complexity: "O(1)",
+            { name: "Carbon Footprint", helpKey: "carbon", year: "2000s", formula: "CO₂ = Power × Hours × Intensity", description: "Environmental impact.", tags: ["Environmental"], complexity: "O(1)",
               simulate: function(power, hours, intensity) { return (power * hours * intensity) / 1000; },
               params: [{ name: "Power (kW)", id: "carbon_power", min: 100, max: 50000, step: 100, default: 1000 },
                        { name: "Hours/Year", id: "carbon_hours", min: 1000, max: 8760, step: 100, default: 8760 },
                        { name: "Carbon Intensity", id: "carbon_intensity", min: 10, max: 500, step: 5, default: 50, suffix: "gCO₂/kWh" }] }
         ],
         performance: [
-            { name: "Parallel Efficiency", year: "1980s", formula: "Efficiency = Speedup / N", description: "Measures core utilization.", tags: ["Utilization"], complexity: "O(1)",
+            { name: "Parallel Efficiency", helpKey: "efficiency", year: "1980s", formula: "Efficiency = Speedup / N", description: "Measures core utilization.", tags: ["Utilization"], complexity: "O(1)",
               simulate: function(speedup, N) { return (speedup / N) * 100; },
               params: [{ name: "Speedup", id: "eff_speedup", min: 1, max: 1000, step: 1, default: 15, suffix: "x" },
                        { name: "Cores", id: "eff_cores", min: 1, max: 1024, step: 1, default: 32 }] },
-            { name: "Strong Scaling", year: "1980s", formula: "Fixed problem size", description: "Time reduction with more cores.", tags: ["Amdahl"], complexity: "O(1)",
+            { name: "Strong Scaling", helpKey: "strongscaling", year: "1980s", formula: "Fixed problem size", description: "Time reduction with more cores.", tags: ["Amdahl"], complexity: "O(1)",
               simulate: function(cores, serial) { let s = 1 / (serial + (1-serial)/cores); return { speedup: s.toFixed(2), efficiency: (s/cores*100).toFixed(1) }; },
               params: [{ name: "Cores", id: "strong_cores", min: 1, max: 1024, step: 1, default: 64 },
                        { name: "Serial Fraction", id: "strong_serial", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 }] },
-            { name: "Weak Scaling", year: "1980s", formula: "Problem size ∝ cores", description: "Problem grows with cores.", tags: ["Gustafson"], complexity: "O(1)",
+            { name: "Weak Scaling", helpKey: "weakscaling", year: "1980s", formula: "Problem size ∝ cores", description: "Problem grows with cores.", tags: ["Gustafson"], complexity: "O(1)",
               simulate: function(cores, serial) { let s = cores - serial * (cores - 1); return { speedup: s.toFixed(2), efficiency: (s/cores*100).toFixed(1) }; },
               params: [{ name: "Cores", id: "weak_cores", min: 1, max: 1024, step: 1, default: 64 },
                        { name: "Serial Fraction", id: "weak_serial", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 }] }
         ]
     };
+
+    function showAlgorithmHelp(helpKey, event) {
+        event.stopPropagation();
+        const help = helpContent[helpKey];
+        if (help && typeof ExplanationPopup !== 'undefined') {
+            ExplanationPopup.show(help.title, help.content);
+        } else if (help) {
+            alert(help.title + "\n\n" + help.content.replace(/<[^>]*>/g, ''));
+        } else {
+            alert("Help information loading...");
+        }
+    }
 
     function addResult(algorithmName, resultText, details) {
         const resultsContent = document.getElementById('resultsContent');
@@ -512,7 +570,7 @@
     
     function createAlgorithmCard(algo, category, idx) {
         const card = document.createElement('div'); card.className = 'algorithm-card'; card.dataset.name = algo.name.toLowerCase(); card.dataset.category = category;
-        card.innerHTML = `<div class="algorithm-header"><div class="algorithm-name">${algo.name}<span class="help-icon-small" onclick="event.stopPropagation(); showHelpPopup('${algo.name}', '${(algo.helpContent || '<p>Info</p>').replace(/'/g, "\\'")}')">?</span></div><span class="algorithm-year">${algo.year}</span></div>
+        card.innerHTML = `<div class="algorithm-header"><div class="algorithm-name">${algo.name}<span class="help-icon-small" onclick="showAlgorithmHelp('${algo.helpKey}', event)">?</span></div><span class="algorithm-year">${algo.year}</span></div>
                          ${algo.formula ? `<div class="algorithm-formula">${algo.formula}</div>` : ''}
                          <div class="algorithm-description">${algo.description}</div>
                          <div class="algorithm-tags">${algo.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
@@ -532,14 +590,12 @@
     }
     
     function attachAllSimulationListeners() {
-        // Attach listeners to all range inputs and selects
         document.querySelectorAll('.sim-param').forEach(el => {
             el.removeEventListener('input', updateSimulation);
             el.removeEventListener('change', updateSimulation);
             el.addEventListener('input', updateSimulation);
             el.addEventListener('change', updateSimulation);
         });
-        // Trigger initial updates
         document.querySelectorAll('.algorithm-card').forEach(card => {
             const cat = card.dataset.category;
             const idx = Array.from(card.parentElement.children).indexOf(card);
@@ -558,7 +614,6 @@
         const algo = algorithms[category][idx];
         if (!algo) return;
         
-        // Get parameter values
         let params = [];
         if (algo.params) {
             params = algo.params.map(p => {
@@ -572,13 +627,11 @@
             });
         }
         
-        // Compute result
         let result;
         try {
             result = algo.simulate(...params);
         } catch(e) { result = "Error"; }
         
-        // Format and display
         let resultText = '';
         let details = '';
         const name = algo.name;
@@ -621,7 +674,6 @@
         if (resultDiv) resultDiv.innerHTML = resultText;
         addResult(name, resultText, details);
         
-        // Update value displays
         if (algo.params) {
             algo.params.forEach(p => {
                 const valSpan = document.getElementById(`${p.id}_val`);
@@ -633,8 +685,6 @@
             });
         }
     }
-    
-    function showHelpPopup(title, content) { if (typeof ExplanationPopup !== 'undefined') ExplanationPopup.show(title, content); else alert(title); }
     
     function filterAlgorithms() {
         const search = document.getElementById('searchInput').value.toLowerCase();

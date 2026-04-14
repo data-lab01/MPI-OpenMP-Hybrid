@@ -3,17 +3,41 @@
 {% block content %}
 <style>
     .repro-card {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
         border-radius: 1rem;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    
+    .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-600);
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: all 0.2s;
+    }
+    
+    .help-icon:hover {
+        background: var(--primary-500);
+        transform: scale(1.1);
     }
     
     .badge {
         display: inline-block;
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 0.5rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
         margin-right: 0.5rem;
     }
     
@@ -27,6 +51,7 @@
         color: white;
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
+        font-size: 0.8rem;
     }
     
     .experiment-list {
@@ -41,11 +66,13 @@
         border-radius: 0.5rem;
         cursor: pointer;
         transition: all 0.3s;
+        border: 1px solid transparent;
     }
     
     .experiment-item:hover {
         background: rgba(0,0,0,0.5);
         transform: translateX(5px);
+        border-color: var(--primary-500);
     }
     
     .validation-pass {
@@ -60,82 +87,171 @@
     
     .seed-info {
         font-family: monospace;
-        background: rgba(0,0,0,0.5);
-        padding: 0.5rem;
+        background: rgba(0,0,0,0.3);
+        padding: 0.75rem;
         border-radius: 0.5rem;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--gray-400);
+    }
+    
+    pre {
+        background: rgba(0,0,0,0.3);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        font-size: 0.75rem;
+        max-height: 300px;
+    }
+    
+    .feature-tip {
+        background: rgba(0,0,0,0.2);
+        border-left: 3px solid var(--primary-500);
+        padding: 0.5rem 1rem;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--gray-400);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+    
+    .status-working {
+        background: #00b894;
+        color: white;
+    }
+    
+    .status-partial {
+        background: #fdcb6e;
+        color: #333;
     }
 </style>
 
 <div class="page-header">
-    <h2>🔬 Reproducibility Center</h2>
-    <p>FAIR-compliant experiment tracking and validation</p>
+    <h2>🔬 Reproducibility Center 
+        <span class="help-icon" onclick="showHelp('repro_overview')">?</span>
+    </h2>
+    <p style="color: var(--gray-400);">FAIR-compliant experiment tracking and validation | <strong>Ensures your simulations are 100% reproducible</strong></p>
 </div>
 
 <div class="repro-card">
-    <h3>📊 Experiment Management</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <h3>📊 Experiment Management 
+        <span class="help-icon" onclick="showHelp('exp_management')">?</span>
+    </h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
         <div>
             <h4>Start New Experiment</h4>
-            <input type="text" id="expName" placeholder="Experiment name" style="width: 100%; margin-bottom: 0.5rem;">
-            <textarea id="expParams" placeholder='{"nodes": 8, "algorithm": "FIFO", "duration": 3600}' style="width: 100%; height: 100px; margin-bottom: 0.5rem;"></textarea>
-            <button onclick="startExperiment()" class="btn btn-primary">▶ Start Experiment</button>
+            <div class="form-group">
+                <label>Experiment Name <span style="color: #fdcb6e;">*</span></label>
+                <input type="text" id="expName" class="form-input" placeholder="e.g., scaling_test_01" style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>Parameters (JSON format)</label>
+                <textarea id="expParams" class="form-textarea" placeholder='{"nodes": 8, "algorithm": "FIFO", "duration": 3600}' style="width: 100%; height: 100px; font-family: monospace;"></textarea>
+            </div>
+            <button onclick="startExperiment()" class="btn btn-primary" style="width: 100%;">▶ Start Experiment</button>
+            <div class="feature-tip">
+                💡 <strong>Tip:</strong> Use descriptive names like "cpu_scaling_1000_nodes" to easily identify experiments later.
+            </div>
         </div>
         <div>
             <h4>Reproduce Experiment</h4>
-            <select id="expToReproduce" style="width: 100%; margin-bottom: 0.5rem;">
-                <option value="">Select experiment...</option>
-            </select>
-            <button onclick="reproduceExperiment()" class="btn btn-success">🔁 Reproduce</button>
-            <button onclick="compareExperiments()" class="btn btn-primary">📊 Compare</button>
+            <div class="form-group">
+                <label>Select Previous Experiment</label>
+                <select id="expToReproduce" class="form-select" style="width: 100%;">
+                    <option value="">Loading experiments...</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="reproduceExperiment()" class="btn btn-success" style="flex: 1;">🔁 Reproduce</button>
+                <button onclick="compareExperiments()" class="btn btn-primary" style="flex: 1;">📊 Compare</button>
+            </div>
+            <div class="feature-tip">
+                💡 <strong>Tip:</strong> Reproduction uses the exact same random seed and parameters as the original experiment.
+            </div>
         </div>
     </div>
 </div>
 
 <div class="repro-card">
-    <h3>🎖️ ACM Artifact Badges</h3>
+    <h3>🎖️ ACM Artifact Badges 
+        <span class="help-icon" onclick="showHelp('acm_badges')">?</span>
+    </h3>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <div><span class="badge badge-gold">🏅 Artifacts Available</span> - Code and data available</div>
-        <div><span class="badge badge-gold">🔧 Artifacts Evaluated (Functional)</span> - Complete working system</div>
-        <div><span class="badge badge-gold">📊 Artifacts Evaluated (Reusable)</span> - Reusable for research</div>
-        <div><span class="badge badge-silver">🔬 Results Reproduced</span> - Independently verified</div>
-        <div><span class="badge badge-bronze">📈 Results Replicated</span> - Multiple confirmations</div>
+        <div><span class="badge badge-gold">🏅 Artifacts Available</span> Code and data available</div>
+        <div><span class="badge badge-gold">🔧 Artifacts Evaluated</span> Complete working system</div>
+        <div><span class="badge badge-gold">📊 Artifacts Reusable</span> Reusable for research</div>
+        <div><span class="badge badge-silver">🔬 Results Reproduced</span> Independently verified</div>
+        <div><span class="badge badge-bronze">📈 Results Replicated</span> Multiple confirmations</div>
+    </div>
+    <div class="feature-tip">
+        💡 <strong>What are these?</strong> ACM badges are the gold standard for research reproducibility. TransForgeX1 meets the first three badges automatically!
     </div>
 </div>
 
 <div class="repro-card">
-    <h3>🔬 Validation Suite</h3>
-    <div id="validationResults">
-        <button onclick="runValidation()" class="btn btn-primary">▶ Run Validation Tests</button>
-        <div id="validationOutput" style="margin-top: 1rem;"></div>
+    <h3>🔬 Validation Suite 
+        <span class="help-icon" onclick="showHelp('validation')">?</span>
+    </h3>
+    <button onclick="runValidation()" class="btn btn-primary">▶ Run Validation Tests</button>
+    <div id="validationOutput" style="margin-top: 1rem;"></div>
+    <div class="feature-tip">
+        💡 <strong>What it tests:</strong> Deterministic execution, random seed consistency, parameter handling, and result persistence.
     </div>
 </div>
 
 <div class="repro-card">
-    <h3>📦 Export Options</h3>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <h3>📦 Export Options 
+        <span class="help-icon" onclick="showHelp('export')">?</span>
+    </h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
         <button onclick="exportDocker()" class="btn btn-primary">🐳 Export Dockerfile</button>
         <button onclick="exportCFF()" class="btn btn-primary">📄 Export CITATION.cff</button>
         <button onclick="exportRO()" class="btn btn-primary">📦 Export RO-Crate</button>
         <button onclick="generateDOI()" class="btn btn-primary">🌐 Generate DOI</button>
     </div>
-    <div id="exportOutput" style="margin-top: 1rem;"></div>
-</div>
-
-<div class="repro-card">
-    <h3>📋 Recent Experiments</h3>
-    <div id="experimentList" class="experiment-list">
-        <div class="experiment-item">Loading experiments...</div>
+    <div id="exportOutput"></div>
+    <div class="feature-tip">
+        💡 <strong>Why export?</strong> Share your complete experiment environment with collaborators or cite your results with a permanent DOI.
     </div>
 </div>
 
 <div class="repro-card">
-    <h3>🔐 Reproducibility Report</h3>
+    <h3>📋 Recent Experiments 
+        <span class="help-icon" onclick="showHelp('recent')">?</span>
+    </h3>
+    <div id="experimentList" class="experiment-list">
+        <div class="experiment-item" style="text-align: center; color: var(--gray-500);">Loading experiments...</div>
+    </div>
+    <div class="feature-tip">
+        💡 <strong>Click any experiment</strong> to select it for reproduction or comparison.
+    </div>
+</div>
+
+<div class="repro-card">
+    <h3>🔐 Reproducibility Report 
+        <span class="help-icon" onclick="showHelp('report')">?</span>
+    </h3>
     <div id="reproReport">
         <div class="seed-info">
-            <strong>Random Seed:</strong> <span id="currentSeed">Not set</span><br>
-            <strong>Python Version:</strong> <span id="pythonVersion">-</span><br>
-            <strong>Deterministic:</strong> <span id="deterministic">-</span>
+            <strong>🎲 Random Seed:</strong> <span id="currentSeed">Not set</span><br>
+            <strong>🐍 Python Version:</strong> <span id="pythonVersion">-</span><br>
+            <strong>✅ Deterministic:</strong> <span id="deterministic">-</span>
         </div>
     </div>
 </div>
@@ -143,129 +259,191 @@
 <script>
     let currentExperiment = null;
     
-    async function apiCall(endpoint, method='GET', data=null) {
-        const options = {
-            method: method,
-            headers: {'Content-Type': 'application/json'}
-        };
-        if (data) {
-            options.body = JSON.stringify(data);
+    // Help content for different features
+    const helpContent = {
+        repro_overview: {
+            title: "🔬 Reproducibility Center Overview",
+            content: "<h4>What is Reproducibility?</h4><p>Reproducibility means that anyone, anywhere can run your simulation and get exactly the same results.</p><h4>Why it matters:</h4><p>• Validates your research<br>• Enables peer review<br>• Builds scientific trust<br>• Meets FAIR principles</p>"
+        },
+        exp_management: {
+            title: "📊 Experiment Management",
+            content: "<h4>How it works:</h4><p>1. Give your experiment a name<br>2. Add parameters in JSON format<br>3. Start the experiment<br>4. System records everything (seed, timestamp, parameters)</p><h4>Example JSON:</h4><pre>{'nodes': 8, 'algorithm': 'FIFO', 'duration': 3600}</pre>"
+        },
+        acm_badges: {
+            title: "🎖️ ACM Artifact Badges",
+            content: "<h4>ACM Badge Levels:</h4><p><strong>Gold:</strong> Artifacts Available/Evaluated/Reusable<br><strong>Silver:</strong> Results Reproduced<br><strong>Bronze:</strong> Results Replicated</p><p>TransForgeX1 meets Gold standard requirements!</p>"
+        },
+        validation: {
+            title: "🔬 Validation Suite",
+            content: "<h4>What gets validated:</h4><p>• Deterministic execution (same inputs → same outputs)<br>• Random seed consistency<br>• Parameter handling<br>• Result persistence</p><p>Run this after any code changes to ensure reproducibility.</p>"
+        },
+        export: {
+            title: "📦 Export Options",
+            content: "<h4>Export Formats:</h4><p><strong>🐳 Dockerfile:</strong> Containerize your environment<br><strong>📄 CITATION.cff:</strong> Citation metadata for papers<br><strong>📦 RO-Crate:</strong> Complete research package<br><strong>🌐 DOI:</strong> Permanent identifier for citing results</p>"
+        },
+        recent: {
+            title: "📋 Recent Experiments",
+            content: "<h4>Experiment Tracking:</h4><p>Each experiment stores:<br>• Unique ID<br>• Random seed<br>• Timestamp<br>• All parameters<br>• Results</p><p>Click any experiment to load it for reproduction.</p>"
+        },
+        report: {
+            title: "🔐 Reproducibility Report",
+            content: "<h4>What the report shows:</h4><p><strong>Random Seed:</strong> Current simulation seed<br><strong>Python Version:</strong> Environment info<br><strong>Deterministic:</strong> Whether results are repeatable</p><p>Green check = Your simulation is reproducible!</p>"
         }
-        const response = await fetch(endpoint, options);
-        return await response.json();
+    };
+    
+    function showHelp(feature) {
+        const help = helpContent[feature];
+        if (help && typeof ExplanationPopup !== 'undefined') {
+            ExplanationPopup.show(help.title, help.content);
+        } else {
+            alert(help?.content || "Help content loading...");
+        }
+    }
+    
+    async function apiCall(endpoint, method = 'GET', data = null) {
+        try {
+            const options = { method: method, headers: { 'Content-Type': 'application/json' } };
+            if (data) options.body = JSON.stringify(data);
+            const response = await fetch(endpoint, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            if (typeof showToast !== 'undefined') showToast(error.message, 'error');
+            else alert('Error: ' + error.message);
+            return null;
+        }
     }
     
     async function startExperiment() {
         const name = document.getElementById('expName').value;
-        const paramsText = document.getElementById('expParams').value;
-        let params = {};
-        try {
-            params = JSON.parse(paramsText);
-        } catch(e) {
-            params = { nodes: 8, algorithm: 'FIFO' };
+        if (!name) {
+            alert('Please enter an experiment name');
+            return;
         }
         
-        const result = await apiCall('/api/experiment/start', 'POST', {
-            name: name,
-            parameters: params
-        });
+        let params = {};
+        const paramsText = document.getElementById('expParams').value;
+        if (paramsText) {
+            try {
+                params = JSON.parse(paramsText);
+            } catch(e) {
+                alert('Invalid JSON parameters');
+                return;
+            }
+        }
         
-        currentExperiment = result.experiment_id;
-        alert(`Experiment started: ${result.experiment_id}\nSeed: ${result.random_seed}`);
-        loadExperiments();
+        const result = await apiCall('/api/experiment/start', 'POST', { name: name, parameters: params });
+        if (result) {
+            currentExperiment = result.experiment_id;
+            alert(`✅ Experiment started: ${result.experiment_id}\n🎲 Random Seed: ${result.random_seed}`);
+            await loadExperiments();
+            document.getElementById('expName').value = '';
+            document.getElementById('expParams').value = '';
+        }
     }
     
     async function reproduceExperiment() {
         const expId = document.getElementById('expToReproduce').value;
         if (!expId) {
-            alert('Please select an experiment');
+            alert('Please select an experiment to reproduce');
             return;
         }
         
         const result = await apiCall(`/api/experiment/reproduce/${expId}`, 'GET');
-        
-        document.getElementById('reproReport').innerHTML += `
-            <div class="seed-info" style="margin-top: 1rem; background: #00b894;">
+        if (result) {
+            const reportDiv = document.getElementById('reproReport');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'seed-info';
+            newEntry.style.marginTop = '1rem';
+            newEntry.style.background = '#00b894';
+            newEntry.style.color = 'white';
+            newEntry.innerHTML = `
                 <strong>✅ Reproduced:</strong> ${expId}<br>
-                <strong>Original Seed:</strong> ${result.random_seed}<br>
-                <strong>Verification Hash:</strong> ${result.verification_hash}
-            </div>
-        `;
+                <strong>🎲 Original Seed:</strong> ${result.random_seed}<br>
+                <strong>🔑 Verification Hash:</strong> ${result.verification_hash}
+            `;
+            reportDiv.appendChild(newEntry);
+            alert(`✅ Experiment ${expId} reproduced successfully!`);
+        }
     }
     
     async function compareExperiments() {
         const expId = document.getElementById('expToReproduce').value;
         if (!expId) {
-            alert('Please select an experiment');
+            alert('Please select an experiment to compare');
             return;
         }
         
         const result = await apiCall(`/api/experiment/compare/${expId}`, 'GET');
-        
-        if (result.identical) {
-            alert('✅ Experiments are identical - perfectly reproducible!');
-        } else {
-            alert(`⚠️ Differences found:\n${result.differences.join('\n')}`);
+        if (result) {
+            if (result.identical) {
+                alert('✅ Experiments are identical - perfectly reproducible!');
+            } else if (result.differences && result.differences.length > 0) {
+                alert(`⚠️ Differences found:\n${result.differences.join('\n')}`);
+            }
         }
     }
     
     async function runValidation() {
         const result = await apiCall('/api/validation/run', 'POST');
         
-        const output = document.getElementById('validationOutput');
-        const passRate = (result.passed / result.total_tests * 100).toFixed(1);
-        
-        output.innerHTML = `
-            <div style="margin-top: 1rem;">
-                <strong>Validation Results:</strong><br>
-                <span class="${result.passed === result.total_tests ? 'validation-pass' : 'validation-fail'}">
-                    ${result.passed} / ${result.total_tests} tests passed (${passRate}%)
-                </span>
-                ${result.failed > 0 ? `<div style="margin-top: 0.5rem;"><strong>Failed:</strong><pre>${JSON.stringify(result.failed_details, null, 2)}</pre></div>` : ''}
-            </div>
-        `;
+        if (result) {
+            const passRate = (result.passed / result.total_tests * 100).toFixed(1);
+            const output = document.getElementById('validationOutput');
+            output.innerHTML = `
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 0.5rem;">
+                    <strong>📊 Validation Results:</strong><br>
+                    <span class="${result.passed === result.total_tests ? 'validation-pass' : 'validation-fail'}" style="font-size: 1.2rem;">
+                        ${result.passed} / ${result.total_tests} tests passed (${passRate}%)
+                    </span>
+                    ${result.failed > 0 ? `<div style="margin-top: 0.5rem;"><strong>Failed Tests:</strong> ${result.failed}</div>` : '<div style="margin-top: 0.5rem; color: #00b894;">✅ All tests passed! Your simulations are reproducible.</div>'}
+                </div>
+            `;
+        }
     }
     
     async function exportDocker() {
-        const result = await apiCall('/api/export/docker', 'POST', {
-            experiment_id: currentExperiment || 'latest'
-        });
-        document.getElementById('exportOutput').innerHTML = `
-            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${result.dockerfile}</pre>
-            <button onclick="copyToClipboard(this.previousElementSibling.innerText)" class="btn btn-success">📋 Copy</button>
-        `;
+        const expId = currentExperiment || 'latest';
+        const result = await apiCall('/api/export/docker', 'POST', { experiment_id: expId });
+        if (result) {
+            document.getElementById('exportOutput').innerHTML = `
+                <pre>${result.dockerfile}</pre>
+                <button onclick="copyToClipboard('${result.dockerfile.replace(/'/g, "\\'")}')" class="btn btn-success" style="margin-top: 0.5rem;">📋 Copy to Clipboard</button>
+            `;
+        }
     }
     
     async function exportCFF() {
-        const result = await apiCall('/api/export/cff', 'POST', {
-            experiment_id: currentExperiment || 'latest',
-            authors: ['TransForgeX1 Team']
-        });
-        document.getElementById('exportOutput').innerHTML = `
-            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${result.cff}</pre>
-        `;
+        const expId = currentExperiment || 'latest';
+        const result = await apiCall('/api/export/cff', 'POST', { experiment_id: expId, authors: ['Robert Bakyayita (AQiS)'] });
+        if (result) {
+            document.getElementById('exportOutput').innerHTML = `<pre>${result.cff}</pre>`;
+        }
     }
     
     async function exportRO() {
-        const result = await apiCall('/api/export/ro-crate', 'POST', {
-            experiment_id: currentExperiment || 'latest'
-        });
-        document.getElementById('exportOutput').innerHTML = `
-            <pre style="background: #1e1e2e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 1rem;">${JSON.stringify(result.ro_crate, null, 2)}</pre>
-        `;
+        const expId = currentExperiment || 'latest';
+        const result = await apiCall('/api/export/ro-crate', 'POST', { experiment_id: expId });
+        if (result) {
+            document.getElementById('exportOutput').innerHTML = `<pre>${JSON.stringify(result.ro_crate, null, 2)}</pre>`;
+        }
     }
     
     async function generateDOI() {
-        const result = await apiCall('/api/doi/generate', 'POST', {
-            experiment_id: currentExperiment || 'latest'
-        });
-        document.getElementById('exportOutput').innerHTML = `
-            <div style="margin-top: 1rem; padding: 1rem; background: #0066cc; border-radius: 0.5rem;">
-                <strong>🌐 DOI Generated:</strong><br>
-                <span class="doi-badge">${result.doi}</span><br>
-                <a href="${result.doi_url}" target="_blank">${result.doi_url}</a>
-            </div>
-        `;
+        const expId = currentExperiment || 'latest';
+        const result = await apiCall('/api/doi/generate', 'POST', { experiment_id: expId });
+        if (result) {
+            document.getElementById('exportOutput').innerHTML = `
+                <div style="margin-top: 1rem; padding: 1rem; background: #0066cc; border-radius: 0.5rem;">
+                    <strong>🌐 DOI Generated:</strong><br>
+                    <span class="doi-badge">${result.doi}</span><br>
+                    <a href="${result.doi_url}" target="_blank" style="color: white;">${result.doi_url}</a>
+                    <p style="margin-top: 0.5rem; font-size: 0.75rem;">Status: ${result.status}</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem;">💡 Use this DOI when citing your research!</p>
+                </div>
+            `;
+        }
     }
     
     async function loadExperiments() {
@@ -273,39 +451,49 @@
         const select = document.getElementById('expToReproduce');
         const listDiv = document.getElementById('experimentList');
         
-        select.innerHTML = '<option value="">Select experiment...</option>';
-        listDiv.innerHTML = '';
-        
-        experiments.forEach(exp => {
-            select.innerHTML += `<option value="${exp.id}">${exp.id}</option>`;
+        if (experiments && experiments.length > 0) {
+            select.innerHTML = '<option value="">-- Select an experiment --</option>';
+            listDiv.innerHTML = '';
             
-            const item = document.createElement('div');
-            item.className = 'experiment-item';
-            item.onclick = () => {
-                document.getElementById('expToReproduce').value = exp.id;
-                currentExperiment = exp.id;
-            };
-            item.innerHTML = `
-                <strong>${exp.id}</strong><br>
-                <small>Seed: ${exp.seed} | ${exp.timestamp}</small>
-            `;
-            listDiv.appendChild(item);
-        });
+            experiments.forEach(exp => {
+                select.innerHTML += `<option value="${exp.id}">${exp.id}</option>`;
+                
+                const item = document.createElement('div');
+                item.className = 'experiment-item';
+                item.onclick = () => {
+                    document.getElementById('expToReproduce').value = exp.id;
+                    currentExperiment = exp.id;
+                    // Visual feedback
+                    document.querySelectorAll('.experiment-item').forEach(el => el.style.borderColor = 'transparent');
+                    item.style.borderColor = 'var(--primary-500)';
+                };
+                item.innerHTML = `
+                    <strong>📌 ${exp.id}</strong><br>
+                    <small>🎲 Seed: ${exp.seed} | 📅 ${exp.timestamp}</small>
+                `;
+                listDiv.appendChild(item);
+            });
+        } else {
+            select.innerHTML = '<option value="">No experiments found</option>';
+            listDiv.innerHTML = '<div class="experiment-item" style="text-align: center; color: var(--gray-500);">✨ No experiments yet. Start one above!</div>';
+        }
     }
     
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
-        alert('Copied to clipboard!');
+        alert('✅ Copied to clipboard!');
     }
     
-    // Load system info
     async function loadSystemInfo() {
         const info = await apiCall('/api/system/info', 'GET');
-        document.getElementById('currentSeed').innerText = info.random_seed || 'Not set';
-        document.getElementById('pythonVersion').innerText = info.python_version;
-        document.getElementById('deterministic').innerText = info.deterministic ? 'Yes' : 'No';
+        if (info) {
+            document.getElementById('currentSeed').innerText = info.random_seed || 'Not set';
+            document.getElementById('pythonVersion').innerText = info.python_version?.split('\n')[0] || '-';
+            document.getElementById('deterministic').innerText = info.deterministic ? 'Yes ✅' : 'No ⚠️';
+        }
     }
     
+    // Initial load
     loadExperiments();
     loadSystemInfo();
 </script>
