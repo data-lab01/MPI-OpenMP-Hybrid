@@ -12,22 +12,23 @@
 <body>
     <nav class="navbar">
         <div class="nav-brand">
-            <img src="{{ url_for('static', filename='img/logo-removebg.png') }}"
-                 width="24"
-                height="24"
-                style="margin-right: 0.5rem;">
-            TransForgeX1
-        </div>
+    <img src="{{ url_for('static', filename='img/logo-removebg.png') }}"
+         width="24"
+         height="24"
+         style="margin-right: 0.5rem;">
+    TransForgeX1
+</div>
+
         <div class="nav-links">
-            <a href="/" class="nav-link" data-tooltip="Main dashboard with system overview">🏠 Dashboard</a>
-            <a href="/scheduler" class="nav-link" data-tooltip="Slurm workload manager simulation">⚙️ Scheduler</a>
-            <a href="/network" class="nav-link" data-tooltip="Network topology and routing simulation">🌐 Network</a>
-            <a href="/algorithms" class="nav-link" data-tooltip="Parallel algorithms and scaling laws">🧮 Algorithms</a>
-            <a href="/gpu" class="nav-link" data-tooltip="GPU performance modeling">🎮 GPU</a>
-            <a href="/parallel-programming" class="nav-link" data-tooltip="MPI and OpenMP simulation">🔄 MPI/OpenMP</a>
-            <a href="/reproducibility" class="nav-link" data-tooltip="FAIR experiment tracking">🔬 Reproducibility</a>
-            <a href="/validation" class="nav-link" data-tooltip="Validation against real systems">✅ Validation</a>
-            <a href="/european-dashboard" class="nav-link" data-tooltip="EuroHPC compliance and standards">🇪🇺 EU Standards</a>
+            <a href="/" class="nav-link">🏠 Dashboard</a>
+            <a href="/scheduler" class="nav-link">⚙️ Scheduler</a>
+            <a href="/network" class="nav-link">🌐 Network</a>
+            <a href="/algorithms" class="nav-link">🧮 Algorithms</a>
+            <a href="/gpu" class="nav-link">🎮 GPU</a>
+            <a href="/parallel-programming" class="nav-link">🔄 MPI/OpenMP</a>
+            <a href="/european-dashboard" class="nav-link">🇪🇺 EU Standards</a>
+            <a href="/reproducibility" class="nav-link">🔬 Reproducibility</a>
+            <a href="/validation" class="nav-link">✅ Validation</a>
         </div>
     </nav>
     
@@ -35,29 +36,120 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer for all pages -->
-    <footer style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(128, 128, 128, 0.2); text-align: center;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 1rem 2rem;">
-            <div style="color: var(--gray-500); font-size: 0.75rem;">
-                © 2026 TransForgeX1. All Rights Reserved.
+    <!-- Simple Clean Footer -->
+    <footer class="simple-footer">
+        <div class="simple-footer-content">
+            <div class="simple-footer-left">
+                <span>© 2026 TransForgeX1</span>
+                <span class="separator">|</span>
+                <span>Developed by Robert Bakyayita (AQiS)</span>
+                <span class="separator">|</span>
+                <span>EuroHPC JU Compliant</span>
+                <span class="separator">|</span>
+                <span>PRACE Ready</span>
+                <span class="separator">|</span>
+                <span>FAIR Principles</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <span style="color: var(--primary-300); font-size: 0.75rem;">👨‍💻 Robert Bakyayita</span>
-                <span style="color: var(--gray-500); font-size: 0.7rem;">| AQiS</span>
+            <div class="simple-footer-right">
+                <a href="#" onclick="showAboutFooter(); return false;">About</a>
+                <a href="#" onclick="showLicenseFooter(); return false;">License</a>
+                <a href="#" onclick="showContactFooter(); return false;">Contact</a>
+                <a href="#" onclick="showDocumentationFooter(); return false;">Docs</a>
+                <button onclick="toggleTheme()" class="simple-theme-btn">Toggle Theme</button>
             </div>
-            <div style="display: flex; gap: 1rem;">
-                <a href="#" onclick="showAboutFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">About</a>
-                <a href="#" onclick="showLicenseFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">License</a>
-                <a href="#" onclick="showContactFooter(); return false;" style="color: var(--gray-500); text-decoration: none; font-size: 0.7rem;">Contact</a>
-                <button id="themeToggleBtn" class="btn-outline" style="background: none; border: none; cursor: pointer; font-size: 0.7rem; color: var(--gray-500);">🎨 Toggle Theme</button>
-            </div>
-        </div>
-        <div style="font-size: 0.65rem; color: var(--gray-600); padding-bottom: 1rem;">
-            EuroHPC JU Compliant | PRACE Benchmark Ready | FAIR Data Principles
         </div>
     </footer>
     
-    <div id="toastContainer" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 2000;"></div>
+    <div id="toastContainer"></div>
+    
+    <style>
+        /* Simple Clean Footer */
+        .simple-footer {
+            background: var(--secondary-800);
+            border-top: 1px solid var(--glass-border);
+            margin-top: 3rem;
+            padding: 1.25rem 2rem;
+        }
+        
+        .simple-footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .simple-footer-left {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--secondary-500);
+        }
+        
+        .simple-footer-left .separator {
+            color: var(--secondary-700);
+        }
+        
+        .simple-footer-right {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .simple-footer-right a {
+            color: var(--secondary-500);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        
+        .simple-footer-right a:hover {
+            color: var(--primary-400);
+        }
+        
+        .simple-theme-btn {
+            background: var(--secondary-700);
+            border: none;
+            color: var(--secondary-300);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .simple-theme-btn:hover {
+            background: var(--primary-600);
+            color: white;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .simple-footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .simple-footer-left {
+                justify-content: center;
+            }
+            .simple-footer-right {
+                justify-content: center;
+            }
+        }
+        
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+        }
+    </style>
     
     <script>
         // Theme management
@@ -82,9 +174,9 @@
             }
         }
         
-        // Professional toast notification system
-        function showToast(message, type = 'info') {
+        function showToast(message, type) {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span>${message}</span>`;
@@ -103,7 +195,6 @@
             }
         });
         
-        // API call helper with error handling
         async function apiCall(endpoint, method = 'GET', data = null) {
             try {
                 const options = { method: method, headers: { 'Content-Type': 'application/json' } };
@@ -124,18 +215,17 @@
             return `${(seconds / 3600).toFixed(1)}h`;
         }
         
-        // Footer functions
         function showAboutFooter() {
             if (typeof ExplanationPopup !== 'undefined') {
-                ExplanationPopup.show('About TransForgeX1', '<h4> TransForgeX1 HPC Simulator</h4><p><strong>Version:</strong> 2.0.0</p><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Organization:</strong> AQiS</p><p>© 2026 All Rights Reserved</p>');
+                ExplanationPopup.show('About TransForgeX1', '<h4>🔧 TransForgeX1 HPC Simulator</h4><p><strong>Version:</strong> 2.0.0</p><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Organization:</strong> AQiS</p><p>© 2026 All Rights Reserved</p>');
             } else {
-                alert('About: TransForgeX1 HPC Simulator v2.0.0\nDeveloper: Robert Bakyayita\nOrganization: AQiS');
+                alert('TransForgeX1 HPC Simulator v2.0.0\nDeveloper: Robert Bakyayita\nOrganization: AQiS');
             }
         }
         
         function showLicenseFooter() {
             if (typeof ExplanationPopup !== 'undefined') {
-                ExplanationPopup.show('License', '<h4>📜 MIT License</h4><p>Copyright © 2026 Robert Bakyayita (AQiS)</p><p>Free to use for educational and research purposes.</p>');
+                ExplanationPopup.show('License', '<h4>📜 MIT License</h4><p>Copyright © 2026 Robert Bakyayita (AQiS)</p><p>Free for educational and research use.</p>');
             } else {
                 alert('MIT License - Free for educational and research purposes');
             }
@@ -143,43 +233,23 @@
         
         function showContactFooter() {
             if (typeof ExplanationPopup !== 'undefined') {
-                ExplanationPopup.show('Contact', '<h4>📧 Contact</h4><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Email:</strong> info@aqis.ai</p>');
+                ExplanationPopup.show('Contact', '<h4>📧 Contact</h4><p><strong>Developer:</strong> Robert Bakyayita</p><p><strong>Organization:</strong> AQiS</p><p><strong>Email:</strong> robert.bakyayita@aqis.org</p>');
             } else {
-                alert('Contact: info@aqis.ai');
+                alert('Contact: robert.bakyayita@aqis.org');
             }
         }
         
-        // Initialize theme on page load
-        initTheme();
-        
-        // Add theme toggle button listener
-        const themeBtn = document.getElementById('themeToggleBtn');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', toggleTheme);
+        function showDocumentationFooter() {
+            window.open('/algorithms', '_blank');
         }
+        
+        initTheme();
     </script>
     
     <style>
         @keyframes slideOut {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        [data-tooltip] {
-            cursor: help;
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--card-border);
-            padding: 0.25rem 0.75rem;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
         }
     </style>
     
