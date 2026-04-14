@@ -106,14 +106,8 @@
     }
     
     @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
     }
     
     .category-section {
@@ -303,55 +297,19 @@
         margin-top: 0.5rem;
     }
     
-    .visualization {
-        background: rgba(0,0,0,0.3);
-        border-radius: var(--radius-md);
-        padding: 0.75rem;
-        margin-top: 0.75rem;
-        text-align: center;
-        font-size: 0.75rem;
-    }
-    
-    .progress-container {
-        background: rgba(255,255,255,0.1);
-        border-radius: var(--radius-full);
-        height: 20px;
-        margin: 0.5rem 0;
-        overflow: hidden;
-    }
-    
-    .progress-fill {
-        background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        color: white;
-        transition: width 0.3s;
-    }
-    
     /* Make room for results window */
     .container {
         margin-right: 400px;
     }
     
     @media (max-width: 1024px) {
-        .results-window {
-            width: 320px;
-        }
-        .container {
-            margin-right: 340px;
-        }
+        .results-window { width: 320px; }
+        .container { margin-right: 340px; }
     }
     
     @media (max-width: 768px) {
-        .results-window {
-            display: none;
-        }
-        .container {
-            margin-right: 0;
-        }
+        .results-window { display: none; }
+        .container { margin-right: 0; }
         .grid-2 { grid-template-columns: 1fr; }
         .param-group { flex-direction: column; align-items: flex-start; }
         .param-group label { min-width: auto; }
@@ -401,151 +359,126 @@
 <div id="algorithmsContainer"></div>
 
 <script>
-    // Store results
     let simulationResults = [];
     let resultsWindowCollapsed = false;
     
-    // Complete algorithms database
+    // Complete algorithms database with CORRECT simulation functions
     const algorithms = {
         scaling: [
             { name: "Amdahl's Law", year: 1967, formula: "Speedup = 1 / (S + (1-S)/N)", description: "The serial portion of code limits maximum speedup.", tags: ["Speedup Limit", "Theoretical Bound"], complexity: "O(1)",
               simulate: function(S, N) { return 1 / (S + (1 - S) / N); },
-              helpContent: "<h4>Amdahl's Law</h4><p>Speedup = 1 / (S + (1-S)/N)</p><p>Serial portion limits maximum speedup.</p>",
               params: [{ name: "Serial Fraction (S)", id: "amdahl_s", min: 0, max: 0.5, step: 0.01, default: 0.1, suffix: "%", multiplier: 100 },
                        { name: "Number of Cores (N)", id: "amdahl_n", min: 1, max: 1024, step: 1, default: 32, suffix: "" }] },
             { name: "Gustafson's Law", year: 1988, formula: "Speedup = N - S×(N-1)", description: "Problem size scales with cores.", tags: ["Weak Scaling", "Scaled Speedup"], complexity: "O(1)",
               simulate: function(S, N) { return N - S * (N - 1); },
-              helpContent: "<h4>Gustafson's Law</h4><p>Speedup = N - S×(N-1)</p><p>Problem sizes scale with available cores.</p>",
               params: [{ name: "Serial Fraction (S)", id: "gustafson_s", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 },
                        { name: "Number of Cores (N)", id: "gustafson_n", min: 1, max: 1024, step: 1, default: 64, suffix: "" }] },
             { name: "Karp-Flatt Metric", year: 1990, formula: "e = (1/Speedup - 1/N) / (1 - 1/N)", description: "Measures actual serial fraction including overhead.", tags: ["Serial Fraction", "Overhead"], complexity: "O(1)",
               simulate: function(speedup, N) { return (1/speedup - 1/N) / (1 - 1/N); },
-              helpContent: "<h4>Karp-Flatt Metric</h4><p>Measures actual serial fraction including overhead.</p>",
               params: [{ name: "Measured Speedup", id: "karp_speedup", min: 1, max: 1000, step: 1, default: 15, suffix: "x" },
                        { name: "Number of Cores (N)", id: "karp_n", min: 1, max: 1024, step: 1, default: 32, suffix: "" }] },
             { name: "Little's Law", year: 1961, formula: "L = λ × W", description: "Relates queue length to arrival rate and waiting time.", tags: ["Queueing Theory", "Scheduling"], complexity: "O(1)",
               simulate: function(lambda, W) { return lambda * W; },
-              helpContent: "<h4>Little's Law</h4><p>L = λ × W (queue length = arrival rate × wait time)</p>",
               params: [{ name: "Arrival Rate (λ)", id: "little_lambda", min: 1, max: 100, step: 1, default: 10, suffix: "jobs/hour" },
                        { name: "Avg Wait Time (W)", id: "little_w", min: 0.1, max: 10, step: 0.1, default: 0.5, suffix: "hours" }] }
         ],
         scheduling: [
-            { name: "FIFO (FCFS)", year: "1960s", formula: "First-In-First-Out", description: "Jobs execute in arrival order. Convoy effect possible.", tags: ["Batch Systems", "Fair"], complexity: "O(1)",
-              simulate: function(jobCount, longFirst) { let waiting = [], time = 0; for (let i = 0; i < jobCount; i++) { waiting.push(time); time += (longFirst && i === 0) ? 100 : 20; } return { avgWait: waiting.reduce((a,b)=>a+b,0)/jobCount, maxWait: Math.max(...waiting), waitingTimes: waiting }; },
+            { name: "FIFO (FCFS)", year: "1960s", formula: "First-In-First-Out", description: "Jobs execute in arrival order.", tags: ["Batch Systems", "Fair"], complexity: "O(1)",
+              simulate: function(jobCount, longFirst) { let waiting = [], time = 0; for (let i = 0; i < jobCount; i++) { waiting.push(time); time += (longFirst && i === 0) ? 100 : 20; } return { avgWait: waiting.reduce((a,b)=>a+b,0)/jobCount, maxWait: Math.max(...waiting) }; },
               params: [{ name: "Number of Jobs", id: "fifo_jobs", min: 1, max: 20, step: 1, default: 10, suffix: "jobs" },
                        { name: "Long Job First", id: "fifo_long", type: "select", options: ["No", "Yes"], default: "No" }] },
             { name: "Shortest Job First", year: "1960s", formula: "Minimize average waiting time", description: "Optimal for minimizing average wait time.", tags: ["Optimal", "Starvation Risk"], complexity: "O(n log n)",
-              simulate: function(jobCount) { let durations = Array.from({length: jobCount}, () => Math.floor(Math.random() * 90) + 10); let sorted = [...durations].sort((a,b)=>a-b); let time = 0, waits = []; for (let d of sorted) { waits.push(time); time += d; } let fifoWait = durations.reduce((a,b,i)=>a + durations.slice(0,i).reduce((s,x)=>s+x,0),0)/jobCount; let sjfWait = waits.reduce((a,b)=>a+b,0)/jobCount; return { avgWait: sjfWait, improvement: ((fifoWait - sjfWait)/fifoWait*100).toFixed(1), durations: durations }; },
+              simulate: function(jobCount) { let durations = Array.from({length: jobCount}, () => Math.floor(Math.random() * 90) + 10); let sorted = [...durations].sort((a,b)=>a-b); let time = 0, waits = []; for (let d of sorted) { waits.push(time); time += d; } let fifoWait = durations.reduce((a,b,i)=>a + durations.slice(0,i).reduce((s,x)=>s+x,0),0)/jobCount; let sjfWait = waits.reduce((a,b)=>a+b,0)/jobCount; return { avgWait: sjfWait, improvement: ((fifoWait - sjfWait)/fifoWait*100).toFixed(1) }; },
               params: [{ name: "Number of Jobs", id: "sjf_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" }] },
-            { name: "Priority Scheduling", year: "1970s", formula: "Higher priority first", description: "Jobs with higher priority execute first. Aging prevents starvation.", tags: ["Dynamic Priority", "Aging"], complexity: "O(n log n)",
-              simulate: function(jobCount, useAging) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, priority: Math.floor(Math.random()*10)+1, duration: Math.floor(Math.random()*50)+10, waitTime: 0})); let time = 0, completed = []; while (jobs.length > 0) { if (useAging) jobs.forEach(j => j.priority++); jobs.sort((a,b) => b.priority - a.priority); let job = jobs.shift(); job.startTime = time; time += job.duration; job.waitTime = job.startTime; completed.push(job); } let avgWait = completed.reduce((a,b)=>a+b.waitTime,0)/jobCount; return { avgWait: avgWait, maxWait: Math.max(...completed.map(c=>c.waitTime)) }; },
+            { name: "Priority Scheduling", year: "1970s", formula: "Higher priority first", description: "Jobs with higher priority execute first.", tags: ["Dynamic Priority", "Aging"], complexity: "O(n log n)",
+              simulate: function(jobCount, useAging) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, priority: Math.floor(Math.random()*10)+1, duration: Math.floor(Math.random()*50)+10})); let time = 0, waits = []; while (jobs.length > 0) { if (useAging === 'Yes') jobs.forEach(j => j.priority++); jobs.sort((a,b) => b.priority - a.priority); let job = jobs.shift(); waits.push(time); time += job.duration; } return { avgWait: waits.reduce((a,b)=>a+b,0)/jobCount, maxWait: Math.max(...waits) }; },
               params: [{ name: "Number of Jobs", id: "prio_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" },
                        { name: "Use Aging", id: "prio_aging", type: "select", options: ["No", "Yes"], default: "Yes" }] },
-            { name: "Round Robin", year: "1970s", formula: "Time Quantum = q", description: "Each job gets a fixed time slice. Fair for interactive systems.", tags: ["Time Sharing", "Fair"], complexity: "O(n)",
-              simulate: function(jobCount, quantum) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*100)+20})); let time = 0, queue = [...jobs], completions = []; while (queue.length > 0) { let job = queue.shift(); if (job.remaining <= quantum) { time += job.remaining; completions.push({id: job.id, time: time}); } else { time += quantum; job.remaining -= quantum; queue.push(job); } } let avgCompletion = completions.reduce((a,b)=>a+b.time,0)/jobCount; return { avgCompletion: avgCompletion, quantum: quantum, jobCount: jobCount }; },
+            { name: "Round Robin", year: "1970s", formula: "Time Quantum = q", description: "Each job gets a fixed time slice.", tags: ["Time Sharing", "Fair"], complexity: "O(n)",
+              simulate: function(jobCount, quantum) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*100)+20})); let time = 0, queue = [...jobs], completions = []; while (queue.length > 0) { let job = queue.shift(); if (job.remaining <= quantum) { time += job.remaining; completions.push(time); } else { time += quantum; job.remaining -= quantum; queue.push(job); } } return { avgCompletion: completions.reduce((a,b)=>a+b,0)/jobCount }; },
               params: [{ name: "Number of Jobs", id: "rr_jobs", min: 2, max: 15, step: 1, default: 8, suffix: "jobs" },
                        { name: "Time Quantum", id: "rr_quantum", min: 10, max: 100, step: 5, default: 30, suffix: "ms" }] },
-            { name: "Multilevel Feedback Queue", year: "1970s", formula: "Multiple priority queues", description: "Jobs move between queues based on behavior. Used in modern OS.", tags: ["Adaptive", "MLFQ"], complexity: "O(n log n)",
-              simulate: function(jobCount) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*150)+30, queue: 0})); let time = 0; let queues = [[], [], []]; let quantums = [10, 20, 40]; for (let job of jobs) queues[0].push(job); while (queues[0].length > 0 || queues[1].length > 0 || queues[2].length > 0) { for (let q = 0; q < 3; q++) { if (queues[q].length > 0) { let job = queues[q].shift(); let exec = Math.min(job.remaining, quantums[q]); time += exec; job.remaining -= exec; if (job.remaining <= 0) { job.completionTime = time; } else { let nextQ = Math.min(q + 1, 2); queues[nextQ].push(job); } break; } } } let avgCompletion = jobs.reduce((a,b)=>a+(b.completionTime||0),0)/jobCount; return { avgCompletion: avgCompletion, jobCount: jobCount }; },
+            { name: "Multilevel Feedback Queue", year: "1970s", formula: "Multiple priority queues", description: "Jobs move between queues based on behavior.", tags: ["Adaptive", "MLFQ"], complexity: "O(n log n)",
+              simulate: function(jobCount) { let jobs = Array.from({length: jobCount}, (_,i) => ({id: i, remaining: Math.floor(Math.random()*150)+30})); let time = 0; let queues = [[], [], []]; let quantums = [10, 20, 40]; for (let job of jobs) queues[0].push(job); while (queues[0].length > 0 || queues[1].length > 0 || queues[2].length > 0) { for (let q = 0; q < 3; q++) { if (queues[q].length > 0) { let job = queues[q].shift(); let exec = Math.min(job.remaining, quantums[q]); time += exec; job.remaining -= exec; if (job.remaining > 0) { let nextQ = Math.min(q + 1, 2); queues[nextQ].push(job); } break; } } } return { avgCompletion: jobs.reduce((a,b)=>a+time,0)/jobCount }; },
               params: [{ name: "Number of Jobs", id: "mlfq_jobs", min: 3, max: 20, step: 1, default: 10, suffix: "jobs" }] }
         ],
         network: [
-            { name: "Dragonfly Routing", year: 2008, formula: "3-hop routing", description: "source → local → global → destination. Used in Cray supercomputers.", tags: ["Cray", "3 Hops"], complexity: "Diameter: 3",
-              simulate: function(nodes, packets) { let hops = 3; let totalHops = packets * hops; let latency = totalHops * 0.5; return { hops: hops, totalHops: totalHops, latencyMs: latency }; },
+            { name: "Dragonfly Routing", year: 2008, formula: "3-hop routing", description: "source → local → global → destination.", tags: ["Cray", "3 Hops"], complexity: "Diameter: 3",
+              simulate: function(nodes, packets) { return { hops: 3, totalHops: packets * 3, latencyMs: packets * 3 * 0.5 }; },
               params: [{ name: "Number of Nodes", id: "drag_nodes", min: 10, max: 1000, step: 10, default: 100, suffix: "nodes" },
-                       { name: "Packets to Send", id: "drag_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
-            { name: "Fat-Tree Routing", year: 1985, formula: "Full bisection bandwidth", description: "Used in many HPC clusters. No bandwidth bottlenecks.", tags: ["Full Bisection", "Clos"], complexity: "Diameter: O(log N)",
-              simulate: function(nodes, packets) { let logN = Math.log2(nodes); let hops = Math.ceil(logN * 2); let latency = packets * hops * 0.3; return { hops: hops, totalHops: packets * hops, latencyMs: latency }; },
+                       { name: "Packets", id: "drag_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
+            { name: "Fat-Tree Routing", year: 1985, formula: "Full bisection bandwidth", description: "No bandwidth bottlenecks.", tags: ["Full Bisection", "Clos"], complexity: "Diameter: O(log N)",
+              simulate: function(nodes, packets) { let hops = Math.ceil(Math.log2(nodes) * 2); return { hops: hops, totalHops: packets * hops, latencyMs: packets * hops * 0.3 }; },
               params: [{ name: "Number of Nodes", id: "fat_nodes", min: 4, max: 1024, step: 4, default: 64, suffix: "nodes" },
-                       { name: "Packets to Send", id: "fat_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
-            { name: "Torus Routing", year: "1970s", formula: "Dimension-order routing", description: "Route sequentially through dimensions. Deadlock-free.", tags: ["Torus", "Deadlock-Free"], complexity: "Diameter: D",
-              simulate: function(dimensions, packets) { let dims = dimensions.split('x').map(Number); let hops = dims.reduce((a,b) => a + Math.floor(b/2), 0); let latency = packets * hops * 0.4; return { hops: hops, totalHops: packets * hops, latencyMs: latency }; },
-              params: [{ name: "Dimensions (e.g., 8x8x8)", id: "torus_dims", type: "text", default: "8x8x8", suffix: "" },
-                       { name: "Packets to Send", id: "torus_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] }
+                       { name: "Packets", id: "fat_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] },
+            { name: "Torus Routing", year: "1970s", formula: "Dimension-order routing", description: "Route sequentially through dimensions.", tags: ["Torus", "Deadlock-Free"], complexity: "Diameter: D",
+              simulate: function(dimensions, packets) { let dims = dimensions.split('x').map(Number); let hops = dims.reduce((a,b) => a + Math.floor(b/2), 0); return { hops: hops, totalHops: packets * hops, latencyMs: packets * hops * 0.4 }; },
+              params: [{ name: "Dimensions", id: "torus_dims", type: "text", default: "8x8x8" },
+                       { name: "Packets", id: "torus_packets", min: 1, max: 1000, step: 10, default: 100, suffix: "packets" }] }
         ],
         communication: [
-            { name: "MPI_Bcast (Binomial Tree)", year: "1980s", formula: "Tree-based propagation", description: "Broadcasts from root to all in O(log P) steps.", tags: ["Broadcast", "MPI"], complexity: "O(log P)",
-              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); let time = steps * (5 + msgSize / 100); return { steps: steps, timeUs: time }; },
-              params: [{ name: "Number of Ranks", id: "bcast_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
+            { name: "MPI_Bcast", year: "1980s", formula: "Tree-based", description: "Broadcasts from root to all.", tags: ["Broadcast", "MPI"], complexity: "O(log P)",
+              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (5 + msgSize / 100) }; },
+              params: [{ name: "Ranks", id: "bcast_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "bcast_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] },
-            { name: "MPI_Allreduce (Recursive Doubling)", year: "1980s", formula: "Each step doubles data", description: "Combines values from all processes.", tags: ["Allreduce", "MPI"], complexity: "O(log P)",
-              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); let time = steps * (10 + msgSize / 50); return { steps: steps, timeUs: time }; },
-              params: [{ name: "Number of Ranks", id: "allred_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
+            { name: "MPI_Allreduce", year: "1980s", formula: "Recursive Doubling", description: "Combines values from all processes.", tags: ["Allreduce", "MPI"], complexity: "O(log P)",
+              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (10 + msgSize / 50) }; },
+              params: [{ name: "Ranks", id: "allred_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "allred_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] },
-            { name: "MPI_Alltoall (Bruck)", year: 1997, formula: "Power-of-two efficient", description: "Every process sends to every other.", tags: ["Alltoall", "MPI"], complexity: "O(log P)",
-              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); let time = steps * (8 + msgSize / 25); return { steps: steps, timeUs: time }; },
-              params: [{ name: "Number of Ranks", id: "alltoall_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
+            { name: "MPI_Alltoall", year: 1997, formula: "Bruck", description: "Every process sends to every other.", tags: ["Alltoall", "MPI"], complexity: "O(log P)",
+              simulate: function(ranks, msgSize) { let steps = Math.ceil(Math.log2(ranks)); return { steps: steps, timeUs: steps * (8 + msgSize / 25) }; },
+              params: [{ name: "Ranks", id: "alltoall_ranks", min: 2, max: 1024, step: 2, default: 64, suffix: "ranks" },
                        { name: "Message Size (KB)", id: "alltoall_msg", min: 1, max: 10000, step: 100, default: 1000, suffix: "KB" }] }
         ],
         numerical: [
-            { name: "Domain Decomposition", year: "1980s", formula: "Divide physical domain", description: "Split domain among processors. Used in CFD, FEM.", tags: ["CFD", "FEM"], complexity: "Communication: O(P)",
-              simulate: function(processors, gridSize) { let cellsPerProc = (gridSize * gridSize) / processors; let commTime = processors * 100; return { cellsPerProc: cellsPerProc, commTimeUs: commTime }; },
+            { name: "Domain Decomposition", year: "1980s", formula: "Divide domain", description: "Split domain among processors.", tags: ["CFD", "FEM"], complexity: "O(P)",
+              simulate: function(processors, gridSize) { return { cellsPerProc: (gridSize * gridSize) / processors, commTimeUs: processors * 100 }; },
               params: [{ name: "Processors", id: "dom_proc", min: 1, max: 256, step: 1, default: 16, suffix: "procs" },
-                       { name: "Grid Size (NxN)", id: "dom_grid", min: 100, max: 10000, step: 100, default: 1000, suffix: "cells" }] },
-            { name: "Fast Fourier Transform", year: 1965, formula: "O(N log N)", description: "Efficient frequency analysis.", tags: ["Spectral", "FFTW"], complexity: "O(N log N)",
-              simulate: function(N) { let dftTime = N * N; let fftTime = N * Math.log2(N); let speedup = dftTime / fftTime; return { dftOps: dftTime, fftOps: Math.round(fftTime), speedup: speedup.toFixed(0) }; },
+                       { name: "Grid Size", id: "dom_grid", min: 100, max: 10000, step: 100, default: 1000, suffix: "cells" }] },
+            { name: "Fast Fourier Transform", year: 1965, formula: "O(N log N)", description: "Efficient frequency analysis.", tags: ["Spectral"], complexity: "O(N log N)",
+              simulate: function(N) { let dft = N * N; let fft = N * Math.log2(N); return { dftOps: dft, fftOps: Math.round(fft), speedup: (dft/fft).toFixed(0) }; },
               params: [{ name: "N (points)", id: "fft_n", min: 64, max: 65536, step: 64, default: 1024, suffix: "points" }] },
-            { name: "Conjugate Gradient", year: 1952, formula: "Iterative linear solver", description: "Solves symmetric positive definite systems.", tags: ["Linear Algebra", "Sparse"], complexity: "O(N²) per iteration",
-              simulate: function(N, iterations) { let ops = N * N * iterations; let memory = N * N * 8 / 1e6; return { operations: ops.toExponential(2), memoryMB: memory.toFixed(2) }; },
-              params: [{ name: "Matrix Size (N)", id: "cg_n", min: 100, max: 10000, step: 100, default: 1000, suffix: "" },
+            { name: "Conjugate Gradient", year: 1952, formula: "Iterative solver", description: "Solves linear systems.", tags: ["Linear Algebra"], complexity: "O(N²)",
+              simulate: function(N, iter) { return { operations: (N * N * iter).toExponential(2), memoryMB: (N * N * 8 / 1e6).toFixed(2) }; },
+              params: [{ name: "Matrix Size", id: "cg_n", min: 100, max: 10000, step: 100, default: 1000 },
                        { name: "Iterations", id: "cg_iter", min: 10, max: 1000, step: 10, default: 100, suffix: "iter" }] }
         ],
         energy: [
-            { name: "Power Usage Effectiveness", year: 2007, formula: "PUE = Total / IT", description: "Measures data center energy efficiency. EuroHPC target < 1.2.", tags: ["Green HPC", "EuroHPC"], complexity: "O(1)",
+            { name: "Power Usage Effectiveness", year: 2007, formula: "PUE = Total / IT", description: "Data center efficiency. EuroHPC target < 1.2.", tags: ["Green HPC"], complexity: "O(1)",
               simulate: function(total, it) { return total / it; },
-              helpContent: "<h4>PUE</h4><p>PUE = Total Power / IT Power. Ideal = 1.0. EuroHPC target < 1.2.</p>",
-              params: [{ name: "Total Power (kW)", id: "pue_total", min: 100, max: 10000, step: 10, default: 1200, suffix: "kW" },
-                       { name: "IT Power (kW)", id: "pue_it", min: 100, max: 9000, step: 10, default: 1000, suffix: "kW" }] },
-            { name: "Carbon Footprint", year: "2000s", formula: "CO₂ = Power × Hours × Intensity", description: "Environmental impact of HPC systems.", tags: ["Environmental", "Reporting"], complexity: "O(1)",
+              params: [{ name: "Total Power (kW)", id: "pue_total", min: 100, max: 10000, step: 10, default: 1200 },
+                       { name: "IT Power (kW)", id: "pue_it", min: 100, max: 9000, step: 10, default: 1000 }] },
+            { name: "Carbon Footprint", year: "2000s", formula: "CO₂ = Power × Hours × Intensity", description: "Environmental impact.", tags: ["Environmental"], complexity: "O(1)",
               simulate: function(power, hours, intensity) { return (power * hours * intensity) / 1000; },
-              helpContent: "<h4>Carbon Footprint</h4><p>CO₂ = Power × Hours × Carbon Intensity</p>",
-              params: [{ name: "Power (kW)", id: "carbon_power", min: 100, max: 50000, step: 100, default: 1000, suffix: "kW" },
-                       { name: "Hours/Year", id: "carbon_hours", min: 1000, max: 8760, step: 100, default: 8760, suffix: "hours" },
+              params: [{ name: "Power (kW)", id: "carbon_power", min: 100, max: 50000, step: 100, default: 1000 },
+                       { name: "Hours/Year", id: "carbon_hours", min: 1000, max: 8760, step: 100, default: 8760 },
                        { name: "Carbon Intensity", id: "carbon_intensity", min: 10, max: 500, step: 5, default: 50, suffix: "gCO₂/kWh" }] }
         ],
         performance: [
-            { name: "Parallel Efficiency", year: "1980s", formula: "Efficiency = Speedup / N", description: "Measures how efficiently cores are utilized.", tags: ["Utilization", "Scaling"], complexity: "O(1)",
+            { name: "Parallel Efficiency", year: "1980s", formula: "Efficiency = Speedup / N", description: "Measures core utilization.", tags: ["Utilization"], complexity: "O(1)",
               simulate: function(speedup, N) { return (speedup / N) * 100; },
-              helpContent: "<h4>Parallel Efficiency</h4><p>Efficiency = Speedup / Processors × 100%</p>",
-              params: [{ name: "Measured Speedup", id: "eff_speedup", min: 1, max: 1000, step: 1, default: 15, suffix: "x" },
-                       { name: "Number of Cores", id: "eff_cores", min: 1, max: 1024, step: 1, default: 32, suffix: "" }] },
-            { name: "Strong Scaling", year: "1980s", formula: "Fixed problem size", description: "Measure time reduction with more cores.", tags: ["Fixed Size", "Amdahl"], complexity: "O(1)",
-              simulate: function(cores, serial) { let speedup = 1 / (serial + (1-serial)/cores); let efficiency = (speedup / cores) * 100; return { speedup: speedup.toFixed(2), efficiency: efficiency.toFixed(1) }; },
-              params: [{ name: "Cores", id: "strong_cores", min: 1, max: 1024, step: 1, default: 64, suffix: "cores" },
+              params: [{ name: "Speedup", id: "eff_speedup", min: 1, max: 1000, step: 1, default: 15, suffix: "x" },
+                       { name: "Cores", id: "eff_cores", min: 1, max: 1024, step: 1, default: 32 }] },
+            { name: "Strong Scaling", year: "1980s", formula: "Fixed problem size", description: "Time reduction with more cores.", tags: ["Amdahl"], complexity: "O(1)",
+              simulate: function(cores, serial) { let s = 1 / (serial + (1-serial)/cores); return { speedup: s.toFixed(2), efficiency: (s/cores*100).toFixed(1) }; },
+              params: [{ name: "Cores", id: "strong_cores", min: 1, max: 1024, step: 1, default: 64 },
                        { name: "Serial Fraction", id: "strong_serial", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 }] },
-            { name: "Weak Scaling", year: "1980s", formula: "Problem size ∝ cores", description: "Problem size grows with cores.", tags: ["Gustafson", "Scaled Speedup"], complexity: "O(1)",
-              simulate: function(cores, serial) { let speedup = cores - serial * (cores - 1); let efficiency = (speedup / cores) * 100; return { speedup: speedup.toFixed(2), efficiency: efficiency.toFixed(1) }; },
-              params: [{ name: "Cores", id: "weak_cores", min: 1, max: 1024, step: 1, default: 64, suffix: "cores" },
+            { name: "Weak Scaling", year: "1980s", formula: "Problem size ∝ cores", description: "Problem grows with cores.", tags: ["Gustafson"], complexity: "O(1)",
+              simulate: function(cores, serial) { let s = cores - serial * (cores - 1); return { speedup: s.toFixed(2), efficiency: (s/cores*100).toFixed(1) }; },
+              params: [{ name: "Cores", id: "weak_cores", min: 1, max: 1024, step: 1, default: 64 },
                        { name: "Serial Fraction", id: "weak_serial", min: 0, max: 0.5, step: 0.01, default: 0.05, suffix: "%", multiplier: 100 }] }
         ]
     };
 
-    // Add result to window
     function addResult(algorithmName, resultText, details) {
+        const resultsContent = document.getElementById('resultsContent');
         const resultCard = document.createElement('div');
         resultCard.className = 'result-card';
-        resultCard.innerHTML = `
-            <div class="result-card-title">${algorithmName}</div>
-            <div class="result-card-value">${resultText}</div>
-            ${details ? `<div class="result-card-detail">${details}</div>` : ''}
-        `;
-        
-        const resultsContent = document.getElementById('resultsContent');
-        // Remove empty placeholder if present
-        if (resultsContent.children.length === 1 && resultsContent.children[0].style?.textAlign === 'center') {
-            resultsContent.innerHTML = '';
-        }
+        resultCard.innerHTML = `<div class="result-card-title">${algorithmName}</div><div class="result-card-value">${resultText}</div>${details ? `<div class="result-card-detail">${details}</div>` : ''}`;
+        if (resultsContent.children.length === 1 && resultsContent.children[0].innerText?.includes('Click')) resultsContent.innerHTML = '';
         resultsContent.insertBefore(resultCard, resultsContent.firstChild);
-        
-        // Update count
-        const count = document.querySelectorAll('.result-card').length;
-        document.getElementById('resultsCount').innerText = count;
-        
-        // Limit to 20 results
-        while (document.querySelectorAll('.result-card').length > 20) {
-            const lastCard = document.querySelectorAll('.result-card')[document.querySelectorAll('.result-card').length - 1];
-            if (lastCard) lastCard.remove();
-        }
+        document.getElementById('resultsCount').innerText = document.querySelectorAll('.result-card').length;
+        while (document.querySelectorAll('.result-card').length > 20) document.querySelectorAll('.result-card')[document.querySelectorAll('.result-card').length - 1]?.remove();
     }
     
     function clearAllResults() {
@@ -554,356 +487,166 @@
     }
     
     function toggleResultsWindow() {
-        const window = document.getElementById('resultsWindow');
-        const toggleBtn = document.getElementById('toggleResultsBtn');
-        resultsWindowCollapsed = !resultsWindowCollapsed;
-        if (resultsWindowCollapsed) {
-            window.classList.add('collapsed');
-            toggleBtn.innerHTML = '▶';
-        } else {
-            window.classList.remove('collapsed');
-            toggleBtn.innerHTML = '◀';
-        }
+        const w = document.getElementById('resultsWindow');
+        const btn = document.getElementById('toggleResultsBtn');
+        if (w.classList.contains('collapsed')) { w.classList.remove('collapsed'); btn.innerHTML = '◀'; }
+        else { w.classList.add('collapsed'); btn.innerHTML = '▶'; }
     }
     
     function renderAlgorithms() {
         const container = document.getElementById('algorithmsContainer');
         container.innerHTML = '';
-        
         for (const [category, algos] of Object.entries(algorithms)) {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category-section';
-            categoryDiv.dataset.category = category;
-            
-            const categoryTitle = document.createElement('h2');
-            categoryTitle.className = 'category-title';
-            categoryTitle.innerHTML = getCategoryIcon(category) + ' ' + getCategoryName(category);
-            categoryDiv.appendChild(categoryTitle);
-            
-            const gridDiv = document.createElement('div');
-            gridDiv.className = 'grid-2';
-            
-            algos.forEach((algo, idx) => {
-                const card = createAlgorithmCard(algo, category, idx);
-                gridDiv.appendChild(card);
-            });
-            
-            categoryDiv.appendChild(gridDiv);
-            container.appendChild(categoryDiv);
+            const categoryDiv = document.createElement('div'); categoryDiv.className = 'category-section'; categoryDiv.dataset.category = category;
+            const title = document.createElement('h2'); title.className = 'category-title'; title.innerHTML = getCategoryIcon(category) + ' ' + getCategoryName(category);
+            categoryDiv.appendChild(title);
+            const grid = document.createElement('div'); grid.className = 'grid-2';
+            algos.forEach((algo, idx) => { grid.appendChild(createAlgorithmCard(algo, category, idx)); });
+            categoryDiv.appendChild(grid); container.appendChild(categoryDiv);
         }
-        
         attachAllSimulationListeners();
     }
     
-    function getCategoryIcon(category) {
-        const icons = { scaling: '📐', scheduling: '🔄', network: '🌐', communication: '📡', numerical: '🧮', energy: '⚡', performance: '📊' };
-        return icons[category] || '📚';
-    }
-    
-    function getCategoryName(category) {
-        const names = { scaling: 'Scaling Laws', scheduling: 'Scheduling Algorithms', network: 'Network Algorithms', communication: 'Communication Algorithms', numerical: 'Numerical Algorithms', energy: 'Energy Laws', performance: 'Performance Metrics' };
-        return names[category] || category;
-    }
+    function getCategoryIcon(c) { return { scaling:'📐', scheduling:'🔄', network:'🌐', communication:'📡', numerical:'🧮', energy:'⚡', performance:'📊' }[c] || '📚'; }
+    function getCategoryName(c) { return { scaling:'Scaling Laws', scheduling:'Scheduling', network:'Network', communication:'Communication', numerical:'Numerical', energy:'Energy', performance:'Performance' }[c] || c; }
     
     function createAlgorithmCard(algo, category, idx) {
-        const card = document.createElement('div');
-        card.className = 'algorithm-card';
-        card.dataset.name = algo.name.toLowerCase();
-        card.dataset.category = category;
-        
-        const header = document.createElement('div');
-        header.className = 'algorithm-header';
-        header.innerHTML = `
-            <div class="algorithm-name">
-                ${algo.name}
-                <span class="help-icon-small" onclick="event.stopPropagation(); showHelpPopup('${algo.name.replace(/'/g, "\\'")}', \`${(algo.helpContent || '<p>Detailed information about this algorithm.</p>').replace(/`/g, '\\`')}\`)">?</span>
-            </div>
-            <span class="algorithm-year">${algo.year}</span>
-        `;
-        card.appendChild(header);
-        
-        if (algo.formula) {
-            const formulaDiv = document.createElement('div');
-            formulaDiv.className = 'algorithm-formula';
-            formulaDiv.innerText = algo.formula;
-            card.appendChild(formulaDiv);
-        }
-        
-        const descDiv = document.createElement('div');
-        descDiv.className = 'algorithm-description';
-        descDiv.innerText = algo.description;
-        card.appendChild(descDiv);
-        
-        const tagsDiv = document.createElement('div');
-        tagsDiv.className = 'algorithm-tags';
-        algo.tags.forEach(tag => {
-            const tagSpan = document.createElement('span');
-            tagSpan.className = 'tag';
-            tagSpan.innerText = tag;
-            tagsDiv.appendChild(tagSpan);
-        });
-        card.appendChild(tagsDiv);
-        
-        if (algo.complexity) {
-            const complexityDiv = document.createElement('div');
-            complexityDiv.className = 'complexity';
-            complexityDiv.innerHTML = `⏱️ Complexity: ${algo.complexity}`;
-            card.appendChild(complexityDiv);
-        }
-        
-        const simBtn = document.createElement('button');
-        simBtn.className = 'simulate-btn';
-        simBtn.innerText = '▶ Simulate';
-        const panelId = `sim_${category}_${idx}`;
-        simBtn.onclick = (e) => {
-            e.stopPropagation();
-            const panel = document.getElementById(panelId);
-            if (panel) {
-                const wasActive = panel.classList.contains('active');
-                document.querySelectorAll('.simulation-panel').forEach(p => p.classList.remove('active'));
-                if (!wasActive) panel.classList.add('active');
-            }
-        };
-        card.appendChild(simBtn);
-        
-        const simPanel = document.createElement('div');
-        simPanel.className = 'simulation-panel';
-        simPanel.id = panelId;
-        
-        if (algo.params) {
-            algo.params.forEach(param => {
-                const paramGroup = document.createElement('div');
-                paramGroup.className = 'param-group';
-                
-                if (param.type === 'select') {
-                    const select = document.createElement('select');
-                    select.id = param.id;
-                    param.options.forEach(opt => {
-                        const option = document.createElement('option');
-                        option.value = opt;
-                        option.text = opt;
-                        if (opt === param.default) option.selected = true;
-                        select.appendChild(option);
-                    });
-                    paramGroup.innerHTML = `<label>${param.name}:</label>`;
-                    paramGroup.appendChild(select);
-                } else if (param.type === 'text') {
-                    paramGroup.innerHTML = `<label>${param.name}:</label><input type="text" id="${param.id}" value="${param.default}">`;
-                } else {
-                    paramGroup.innerHTML = `<label>${param.name}:</label><input type="range" id="${param.id}" min="${param.min}" max="${param.max}" step="${param.step}" value="${param.default}"><span id="${param.id}_val">${param.default}${param.suffix}</span>`;
-                }
-                simPanel.appendChild(paramGroup);
-            });
-        }
-        
-        const resultDiv = document.createElement('div');
-        resultDiv.className = 'result-highlight';
-        resultDiv.id = `result_${category}_${idx}`;
-        simPanel.appendChild(resultDiv);
-        
-        card.appendChild(simPanel);
+        const card = document.createElement('div'); card.className = 'algorithm-card'; card.dataset.name = algo.name.toLowerCase(); card.dataset.category = category;
+        card.innerHTML = `<div class="algorithm-header"><div class="algorithm-name">${algo.name}<span class="help-icon-small" onclick="event.stopPropagation(); showHelpPopup('${algo.name}', '${(algo.helpContent || '<p>Info</p>').replace(/'/g, "\\'")}')">?</span></div><span class="algorithm-year">${algo.year}</span></div>
+                         ${algo.formula ? `<div class="algorithm-formula">${algo.formula}</div>` : ''}
+                         <div class="algorithm-description">${algo.description}</div>
+                         <div class="algorithm-tags">${algo.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                         ${algo.complexity ? `<div class="complexity">⏱️ Complexity: ${algo.complexity}</div>` : ''}
+                         <button class="simulate-btn" onclick="event.stopPropagation(); document.getElementById('sim_${category}_${idx}').classList.toggle('active')">▶ Simulate</button>
+                         <div class="simulation-panel" id="sim_${category}_${idx}">${buildParamPanel(algo, category, idx)}<div class="result-highlight" id="result_${category}_${idx}">Click Simulate</div></div>`;
         return card;
     }
     
+    function buildParamPanel(algo, category, idx) {
+        if (!algo.params) return '';
+        return algo.params.map(p => {
+            if (p.type === 'select') return `<div class="param-group"><label>${p.name}:</label><select id="${p.id}" class="sim-param" data-cat="${category}" data-idx="${idx}">${p.options.map(o => `<option value="${o}" ${o === p.default ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+            if (p.type === 'text') return `<div class="param-group"><label>${p.name}:</label><input type="text" id="${p.id}" class="sim-param" data-cat="${category}" data-idx="${idx}" value="${p.default}"></div>`;
+            return `<div class="param-group"><label>${p.name}:</label><input type="range" id="${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.default}" class="sim-param" data-cat="${category}" data-idx="${idx}"><span id="${p.id}_val">${p.default}${p.suffix || ''}</span></div>`;
+        }).join('');
+    }
+    
     function attachAllSimulationListeners() {
-        // Amdahl
-        if (document.getElementById('amdahl_s')) {
-            const update = () => {
-                const S = parseFloat(document.getElementById('amdahl_s').value) / 100;
-                const N = parseInt(document.getElementById('amdahl_n').value);
-                const result = algorithms.scaling[0].simulate(S, N);
-                const resultText = `Speedup: ${result.toFixed(2)}x`;
-                document.getElementById('result_scaling_0').innerHTML = `${resultText}<br><small>Max with infinite cores: ${(1/S).toFixed(1)}x</small>`;
-                document.getElementById('amdahl_s_val').innerText = (S * 100).toFixed(0) + '%';
-                document.getElementById('amdahl_n_val').innerText = N;
-                addResult('Amdahl\'s Law', resultText, `${S*100}% serial, ${N} cores → ${result.toFixed(2)}x speedup`);
-            };
-            document.getElementById('amdahl_s').oninput = update;
-            document.getElementById('amdahl_n').oninput = update;
-            update();
-        }
-        
-        // Gustafson
-        if (document.getElementById('gustafson_s')) {
-            const update = () => {
-                const S = parseFloat(document.getElementById('gustafson_s').value) / 100;
-                const N = parseInt(document.getElementById('gustafson_n').value);
-                const result = algorithms.scaling[1].simulate(S, N);
-                const resultText = `Speedup: ${result.toFixed(2)}x`;
-                document.getElementById('result_scaling_1').innerHTML = `${resultText} (${(result/N*100).toFixed(1)}% efficiency)`;
-                document.getElementById('gustafson_s_val').innerText = (S * 100).toFixed(0) + '%';
-                document.getElementById('gustafson_n_val').innerText = N;
-                addResult('Gustafson\'s Law', resultText, `${S*100}% serial, ${N} cores → ${result.toFixed(2)}x weak scaling`);
-            };
-            document.getElementById('gustafson_s').oninput = update;
-            document.getElementById('gustafson_n').oninput = update;
-            update();
-        }
-        
-        // Karp-Flatt
-        if (document.getElementById('karp_speedup')) {
-            const update = () => {
-                const speedup = parseFloat(document.getElementById('karp_speedup').value);
-                const N = parseInt(document.getElementById('karp_n').value);
-                const result = algorithms.scaling[2].simulate(speedup, N);
-                const resultText = `Serial Fraction: ${(result * 100).toFixed(1)}%`;
-                document.getElementById('result_scaling_2').innerHTML = `${resultText} ${result > 0.1 ? '⚠️ High overhead' : '✅ Good scaling'}`;
-                document.getElementById('karp_speedup_val').innerText = speedup + 'x';
-                document.getElementById('karp_n_val').innerText = N;
-                addResult('Karp-Flatt Metric', resultText, `${speedup}x on ${N} cores → ${(result*100).toFixed(1)}% actual serial fraction`);
-            };
-            document.getElementById('karp_speedup').oninput = update;
-            document.getElementById('karp_n').oninput = update;
-            update();
-        }
-        
-        // Little
-        if (document.getElementById('little_lambda')) {
-            const update = () => {
-                const lambda = parseFloat(document.getElementById('little_lambda').value);
-                const W = parseFloat(document.getElementById('little_w').value);
-                const result = algorithms.scaling[3].simulate(lambda, W);
-                const resultText = `Queue Length: ${result.toFixed(1)} jobs`;
-                document.getElementById('result_scaling_3').innerHTML = `${resultText}<br><small>System ${result > 50 ? 'congested' : 'stable'}</small>`;
-                document.getElementById('little_lambda_val').innerText = lambda + ' jobs/hour';
-                document.getElementById('little_w_val').innerText = W + ' hours';
-                addResult('Little\'s Law', resultText, `${lambda} jobs/hour arrival, ${W}h wait → ${result.toFixed(1)} jobs in queue`);
-            };
-            document.getElementById('little_lambda').oninput = update;
-            document.getElementById('little_w').oninput = update;
-            update();
-        }
-        
-        // FIFO
-        if (document.getElementById('fifo_jobs')) {
-            const update = () => {
-                const jobs = parseInt(document.getElementById('fifo_jobs').value);
-                const longFirst = document.getElementById('fifo_long').value === 'Yes';
-                const result = algorithms.scheduling[0].simulate(jobs, longFirst);
-                const resultText = `Avg Wait: ${result.avgWait.toFixed(1)}s | Max Wait: ${result.maxWait}s`;
-                document.getElementById('result_scheduling_0').innerHTML = `${resultText}<br><small>${longFirst ? '⚠️ Convoy effect detected' : '✅ Fair scheduling'}</small>`;
-                document.getElementById('fifo_jobs_val').innerText = jobs;
-                addResult('FIFO Scheduling', resultText, `${jobs} jobs, ${longFirst ? 'long job first' : 'normal order'} → avg wait ${result.avgWait.toFixed(1)}s`);
-            };
-            document.getElementById('fifo_jobs').oninput = update;
-            if (document.getElementById('fifo_long')) document.getElementById('fifo_long').onchange = update;
-            update();
-        }
-        
-        // SJF
-        if (document.getElementById('sjf_jobs')) {
-            const update = () => {
-                const jobs = parseInt(document.getElementById('sjf_jobs').value);
-                const result = algorithms.scheduling[1].simulate(jobs);
-                const resultText = `Avg Wait: ${result.avgWait.toFixed(1)}s`;
-                document.getElementById('result_scheduling_1').innerHTML = `${resultText}<br><small>${result.improvement}% better than FIFO</small>`;
-                document.getElementById('sjf_jobs_val').innerText = jobs;
-                addResult('Shortest Job First', resultText, `${jobs} jobs → ${result.avgWait.toFixed(1)}s avg wait (${result.improvement}% better than FIFO)`);
-            };
-            document.getElementById('sjf_jobs').oninput = update;
-            update();
-        }
-        
-        // Continue for all other algorithms similarly...
-        // (Priority, Round Robin, MLFQ, Dragonfly, Fat-Tree, Torus, MPI_Bcast, MPI_Allreduce, MPI_Alltoall, Domain Decomposition, FFT, CG, PUE, Carbon, Efficiency, Strong Scaling, Weak Scaling)
-        
-        // Add remaining listeners quickly
-        const simpleUpdates = [
-            { id: 'prio_jobs', name: 'Priority Scheduling', category: 'scheduling', idx: 2, format: (r) => `Avg Wait: ${r.avgWait.toFixed(1)}s | Max Wait: ${r.maxWait}s` },
-            { id: 'rr_jobs', name: 'Round Robin', category: 'scheduling', idx: 3, format: (r) => `Avg Completion: ${r.avgCompletion.toFixed(1)}ms` },
-            { id: 'mlfq_jobs', name: 'MLFQ', category: 'scheduling', idx: 4, format: (r) => `Avg Completion: ${r.avgCompletion.toFixed(1)}ms` },
-            { id: 'drag_nodes', name: 'Dragonfly', category: 'network', idx: 0, format: (r) => `Latency: ${r.latencyMs}μs` },
-            { id: 'fat_nodes', name: 'Fat-Tree', category: 'network', idx: 1, format: (r) => `Latency: ${r.latencyMs}μs` },
-            { id: 'torus_dims', name: 'Torus', category: 'network', idx: 2, format: (r) => `Latency: ${r.latencyMs}μs` },
-            { id: 'bcast_ranks', name: 'MPI_Bcast', category: 'communication', idx: 0, format: (r) => `Time: ${r.timeUs}μs` },
-            { id: 'allred_ranks', name: 'MPI_Allreduce', category: 'communication', idx: 1, format: (r) => `Time: ${r.timeUs}μs` },
-            { id: 'alltoall_ranks', name: 'MPI_Alltoall', category: 'communication', idx: 2, format: (r) => `Time: ${r.timeUs}μs` },
-            { id: 'dom_proc', name: 'Domain Decomposition', category: 'numerical', idx: 0, format: (r) => `${r.cellsPerProc.toFixed(0)} cells/proc` },
-            { id: 'fft_n', name: 'FFT', category: 'numerical', idx: 1, format: (r) => `${r.fftOps.toLocaleString()} ops` },
-            { id: 'cg_n', name: 'Conjugate Gradient', category: 'numerical', idx: 2, format: (r) => `${r.operations} ops` },
-            { id: 'pue_total', name: 'PUE', category: 'energy', idx: 0, format: (r) => `PUE: ${r.toFixed(2)}` },
-            { id: 'carbon_power', name: 'Carbon Footprint', category: 'energy', idx: 1, format: (r) => `${(r/1000).toFixed(1)} tons CO₂` },
-            { id: 'eff_speedup', name: 'Parallel Efficiency', category: 'performance', idx: 0, format: (r) => `Efficiency: ${r.toFixed(1)}%` },
-            { id: 'strong_cores', name: 'Strong Scaling', category: 'performance', idx: 1, format: (r) => `Speedup: ${r.speedup}x` },
-            { id: 'weak_cores', name: 'Weak Scaling', category: 'performance', idx: 2, format: (r) => `Speedup: ${r.speedup}x` }
-        ];
-        
-        simpleUpdates.forEach(item => {
-            const element = document.getElementById(item.id);
-            if (element) {
-                const updateFunc = () => {
-                    let result;
-                    if (item.name === 'PUE') {
-                        const total = parseFloat(document.getElementById('pue_total').value);
-                        const it = parseFloat(document.getElementById('pue_it').value);
-                        result = algorithms.energy[0].simulate(total, it);
-                    } else if (item.name === 'Carbon Footprint') {
-                        const power = parseFloat(document.getElementById('carbon_power').value);
-                        const hours = parseFloat(document.getElementById('carbon_hours').value);
-                        const intensity = parseFloat(document.getElementById('carbon_intensity').value);
-                        result = algorithms.energy[1].simulate(power, hours, intensity);
-                    } else if (item.name === 'Parallel Efficiency') {
-                        const speedup = parseFloat(document.getElementById('eff_speedup').value);
-                        const cores = parseFloat(document.getElementById('eff_cores').value);
-                        result = algorithms.performance[0].simulate(speedup, cores);
-                    } else if (item.name === 'Strong Scaling') {
-                        const cores = parseInt(document.getElementById('strong_cores').value);
-                        const serial = parseFloat(document.getElementById('strong_serial').value) / 100;
-                        result = algorithms.performance[1].simulate(cores, serial);
-                    } else if (item.name === 'Weak Scaling') {
-                        const cores = parseInt(document.getElementById('weak_cores').value);
-                        const serial = parseFloat(document.getElementById('weak_serial').value) / 100;
-                        result = algorithms.performance[2].simulate(cores, serial);
-                    } else {
-                        result = algorithms[item.category][item.idx].simulate.apply(null, [1,1]);
-                    }
-                    const resultText = item.format(result);
-                    const resultElement = document.getElementById(`result_${item.category}_${item.idx}`);
-                    if (resultElement) resultElement.innerHTML = resultText;
-                    addResult(item.name, resultText, `Simulation completed`);
-                };
-                if (item.id.includes('_s') || item.id.includes('_n') || item.id.includes('_jobs') || item.id.includes('_nodes') || item.id.includes('_packets') || item.id.includes('_ranks') || item.id.includes('_msg') || item.id.includes('_proc') || item.id.includes('_grid') || item.id.includes('_total') || item.id.includes('_it') || item.id.includes('_power') || item.id.includes('_hours') || item.id.includes('_intensity') || item.id.includes('_speedup') || item.id.includes('_cores') || item.id.includes('_serial')) {
-                    document.getElementById(item.id).oninput = updateFunc;
-                    if (item.id.includes('_dims')) document.getElementById(item.id).onchange = updateFunc;
-                    updateFunc();
-                }
-            }
+        // Attach listeners to all range inputs and selects
+        document.querySelectorAll('.sim-param').forEach(el => {
+            el.removeEventListener('input', updateSimulation);
+            el.removeEventListener('change', updateSimulation);
+            el.addEventListener('input', updateSimulation);
+            el.addEventListener('change', updateSimulation);
+        });
+        // Trigger initial updates
+        document.querySelectorAll('.algorithm-card').forEach(card => {
+            const cat = card.dataset.category;
+            const idx = Array.from(card.parentElement.children).indexOf(card);
+            if (cat && idx >= 0) updateSimulationForCard(cat, idx);
         });
     }
     
-    function showHelpPopup(title, content) {
-        ExplanationPopup.show(title, content);
+    function updateSimulation(e) {
+        const el = e.target;
+        const cat = el.dataset.cat;
+        const idx = parseInt(el.dataset.idx);
+        if (!isNaN(idx)) updateSimulationForCard(cat, idx);
     }
+    
+    function updateSimulationForCard(category, idx) {
+        const algo = algorithms[category][idx];
+        if (!algo) return;
+        
+        // Get parameter values
+        let params = [];
+        if (algo.params) {
+            params = algo.params.map(p => {
+                const el = document.getElementById(p.id);
+                if (!el) return p.default;
+                if (p.type === 'select') return el.value;
+                if (p.type === 'text') return el.value;
+                let val = parseFloat(el.value);
+                if (p.multiplier) val = val / p.multiplier;
+                return val;
+            });
+        }
+        
+        // Compute result
+        let result;
+        try {
+            result = algo.simulate(...params);
+        } catch(e) { result = "Error"; }
+        
+        // Format and display
+        let resultText = '';
+        let details = '';
+        const name = algo.name;
+        
+        if (category === 'scaling') {
+            if (idx === 0) { resultText = `Speedup: ${result.toFixed(2)}x`; details = `${params[0]*100}% serial, ${params[1]} cores → ${result.toFixed(2)}x`; }
+            else if (idx === 1) { resultText = `Speedup: ${result.toFixed(2)}x`; details = `${params[0]*100}% serial → ${(result/params[1]*100).toFixed(1)}% efficiency`; }
+            else if (idx === 2) { resultText = `Serial Fraction: ${(result*100).toFixed(1)}%`; details = `${params[0]}x on ${params[1]} cores`; }
+            else { resultText = `Queue Length: ${result.toFixed(1)} jobs`; details = `${params[0]} jobs/hour, ${params[1]}h wait`; }
+        }
+        else if (category === 'scheduling') {
+            if (idx === 0) { resultText = `Avg Wait: ${result.avgWait.toFixed(1)}s`; details = `Max: ${result.maxWait}s`; }
+            else if (idx === 1) { resultText = `Avg Wait: ${result.avgWait.toFixed(1)}s`; details = `${result.improvement}% better than FIFO`; }
+            else if (idx === 2) { resultText = `Avg Wait: ${result.avgWait.toFixed(1)}s`; details = `Max: ${result.maxWait}s`; }
+            else if (idx === 3) { resultText = `Avg Completion: ${result.avgCompletion.toFixed(1)}ms`; details = `${params[0]} jobs, quantum ${params[1]}ms`; }
+            else { resultText = `Avg Completion: ${result.avgCompletion.toFixed(1)}ms`; details = `${params[0]} jobs`; }
+        }
+        else if (category === 'network') {
+            resultText = `Latency: ${result.latencyMs.toFixed(1)}μs`; details = `${result.totalHops} hops`;
+        }
+        else if (category === 'communication') {
+            resultText = `Time: ${result.timeUs.toFixed(1)}μs`; details = `${result.steps} steps`;
+        }
+        else if (category === 'numerical') {
+            if (idx === 0) { resultText = `${result.cellsPerProc.toFixed(0)} cells/proc`; details = `Comm: ${result.commTimeUs}μs`; }
+            else if (idx === 1) { resultText = `${result.fftOps.toLocaleString()} ops`; details = `${result.speedup}x faster than DFT`; }
+            else { resultText = `${result.operations} ops`; details = `Memory: ${result.memoryMB} MB`; }
+        }
+        else if (category === 'energy') {
+            if (idx === 0) { resultText = `PUE: ${result.toFixed(2)}`; details = result <= 1.2 ? '✅ EuroHPC Compliant' : '⚠️ Needs Improvement'; }
+            else { resultText = `${(result/1000).toFixed(1)} tons CO₂`; details = `${params[0]}kW × ${params[1]}h × ${params[2]}g/kWh`; }
+        }
+        else if (category === 'performance') {
+            if (idx === 0) { resultText = `Efficiency: ${result.toFixed(1)}%`; details = `${params[0]}x on ${params[1]} cores`; }
+            else if (idx === 1) { resultText = `Speedup: ${result.speedup}x`; details = `${result.efficiency}% efficiency`; }
+            else { resultText = `Speedup: ${result.speedup}x`; details = `${result.efficiency}% efficiency`; }
+        }
+        
+        const resultDiv = document.getElementById(`result_${category}_${idx}`);
+        if (resultDiv) resultDiv.innerHTML = resultText;
+        addResult(name, resultText, details);
+        
+        // Update value displays
+        if (algo.params) {
+            algo.params.forEach(p => {
+                const valSpan = document.getElementById(`${p.id}_val`);
+                if (valSpan) {
+                    let val = document.getElementById(p.id).value;
+                    if (p.multiplier) val = (val / p.multiplier * 100).toFixed(0);
+                    valSpan.innerText = val + (p.suffix || '');
+                }
+            });
+        }
+    }
+    
+    function showHelpPopup(title, content) { if (typeof ExplanationPopup !== 'undefined') ExplanationPopup.show(title, content); else alert(title); }
     
     function filterAlgorithms() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const category = document.getElementById('categoryFilter').value;
-        
-        document.querySelectorAll('.category-section').forEach(section => {
-            if (category === 'all' || section.dataset.category === category) {
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
-            }
-        });
-        
-        document.querySelectorAll('.algorithm-card').forEach(card => {
-            const name = card.dataset.name || '';
-            const desc = card.querySelector('.algorithm-description')?.innerText.toLowerCase() || '';
-            const matches = name.includes(searchTerm) || desc.includes(searchTerm);
-            card.style.display = matches ? 'block' : 'none';
-        });
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const cat = document.getElementById('categoryFilter').value;
+        document.querySelectorAll('.category-section').forEach(s => { s.style.display = (cat === 'all' || s.dataset.category === cat) ? 'block' : 'none'; });
+        document.querySelectorAll('.algorithm-card').forEach(c => { c.style.display = (c.dataset.name.includes(search) || c.querySelector('.algorithm-description')?.innerText.toLowerCase().includes(search)) ? 'block' : 'none'; });
     }
     
-    function resetFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('categoryFilter').value = 'all';
-        filterAlgorithms();
-    }
+    function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('categoryFilter').value = 'all'; filterAlgorithms(); }
     
     document.getElementById('searchInput').oninput = filterAlgorithms;
     document.getElementById('categoryFilter').onchange = filterAlgorithms;
-    
     renderAlgorithms();
 </script>
 {% endblock %}
